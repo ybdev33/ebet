@@ -74,7 +74,7 @@ const StackNavigator = () => {
                 }}
             >
                 <Stack.Screen name="signin" component={SignIn}/>
-                <Stack.Screen name="signup" component={SignUp}/>
+                <Stack.Screen name="register" component={SignUp}/>
                 <Stack.Screen name="emailverify" component={EmailVerify}/>
                 <Stack.Screen name="changepassword" component={ChangePassword}/>
                 <Stack.Screen name="drawernavigation" component={DrawerNavigation}/>

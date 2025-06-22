@@ -11,7 +11,7 @@ import {
 import * as Animatable from 'react-native-animatable';
 import {useTheme} from '@react-navigation/native';
 import FeatherIcon from 'react-native-vector-icons/Feather';
-import {FONTS, SIZES, COLORS, ICONS, IMAGES} from '../../constants/theme';
+import {FONTS, SIZES, COLORS, IMAGES} from '../../constants/theme';
 import CustomButton from '../../components/customButton';
 import {GlobalStyleSheet} from '../../constants/styleSheet';
 import {LinearGradient} from 'expo-linear-gradient';
@@ -21,9 +21,15 @@ interface SignInProps {
     navigation: {
         navigate: (screen: string) => void;
     };
+    route: {
+        params?: {
+            referralCode?: string;
+            userType?: string;
+        };
+    };
 }
 
-const SignUp: React.FC<SignInProps> = ({navigation}) => {
+const SignUp: React.FC<SignInProps> = ({navigation, route }) => {
     const theme = useTheme();
     const {colors} = useTheme();
 
@@ -31,7 +37,8 @@ const SignUp: React.FC<SignInProps> = ({navigation}) => {
     const [username, setUsername] = useState('');
     const [mobileNumber, setMobileNumber] = useState('');
     const [password, setPassword] = useState('');
-    const [referralCode, setReferralCode] = useState('');
+    const [referralCode, setReferralCode] = useState(route.params?.referralCode || '');
+    const { userType } = route.params || {};
 
     const nameRef = useRef<TextInput>(null);
     const usernameRef = useRef<TextInput>(null);
@@ -59,7 +66,7 @@ const SignUp: React.FC<SignInProps> = ({navigation}) => {
                 mobileNumber,
                 password,
                 referralCode,
-                position: "gold"
+                position: userType
             });
 
             const response = await fetch('http://64.20.36.34:9580/api/ApplicationUsers/CreateUser', {
@@ -170,6 +177,8 @@ const SignUp: React.FC<SignInProps> = ({navigation}) => {
                                     Enter your details below
                                 </Animatable.Text>
                             </View>
+                            {referralCode && <Text>Referral Code: {referralCode}</Text>}
+                            {userType && <Text>User Type: {userType}</Text>}
                             <Animatable.View
                                 animation="fadeInUp"
                                 duration={1000}
@@ -183,6 +192,8 @@ const SignUp: React.FC<SignInProps> = ({navigation}) => {
                                         ...GlobalStyleSheet.shadow,
                                         backgroundColor: colors.card,
                                         borderRadius: SIZES.radius,
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
                                     }}
                                 >
                                     <View style={styles.inputIco}>
@@ -219,6 +230,8 @@ const SignUp: React.FC<SignInProps> = ({navigation}) => {
                                         ...GlobalStyleSheet.shadow,
                                         backgroundColor: colors.card,
                                         borderRadius: SIZES.radius,
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
                                     }}
                                 >
                                     <View style={styles.inputIco}>
@@ -301,6 +314,8 @@ const SignUp: React.FC<SignInProps> = ({navigation}) => {
                                         ...GlobalStyleSheet.shadow,
                                         backgroundColor: colors.card,
                                         borderRadius: SIZES.radius,
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
                                     }}
                                 >
                                     <View style={styles.inputIco}>
@@ -353,6 +368,8 @@ const SignUp: React.FC<SignInProps> = ({navigation}) => {
                                         ...GlobalStyleSheet.shadow,
                                         backgroundColor: colors.card,
                                         borderRadius: SIZES.radius,
+                                        flexDirection: 'row',
+                                        alignItems: 'center',
                                     }}
                                 >
                                     <View style={styles.inputIco}>
@@ -363,6 +380,7 @@ const SignUp: React.FC<SignInProps> = ({navigation}) => {
                                         onFocus={() => setFocusReferralCode(true)}
                                         onBlur={() => setFocusReferralCode(false)}
                                         onChangeText={setReferralCode}
+                                        value={referralCode}
                                         style={[
                                             styles.input,
                                             {

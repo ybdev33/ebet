@@ -309,7 +309,7 @@ const SignIn: React.FC<SignInProps> = ({ navigation }) => {
                                 >
                                     Don't have an account?
                                 </Text>
-                                <TouchableOpacity onPress={() => navigation.navigate('signup')}>
+                                <TouchableOpacity onPress={() => navigation.navigate('register')}>
                                     <Text style={{ ...FONTS.font, color: COLORS.primary }}>Sign up</Text>
                                 </TouchableOpacity>
                             </View>
