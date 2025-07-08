@@ -20,12 +20,15 @@ import { GlobalStyleSheet } from '../../constants/styleSheet';
 import { LinearGradient } from 'expo-linear-gradient';
 import SuccessModal from '../../components/modal/SuccessModal';
 import { saveSession, getSession, removeSession } from '../../helpers/sessionHelper';
+import Constants from 'expo-constants';
 
 interface SignInProps {
     navigation: NavigationProp<any>;
 }
 
 const SignIn: React.FC<SignInProps> = ({ navigation }) => {
+    const { GAMING_DOMAIN } = Constants.expoConfig?.extra || {};
+
     const theme = useTheme();
     const { colors } = theme;
 
@@ -46,7 +49,7 @@ const SignIn: React.FC<SignInProps> = ({ navigation }) => {
 
     const handleSignIn = async () => {
         try {
-            const response = await fetch('http://64.20.36.34:9580/api/ApplicationUsers/GetUser', {
+            const response = await fetch(`${GAMING_DOMAIN}/api/ApplicationUsers/GetUser`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -132,7 +135,7 @@ const SignIn: React.FC<SignInProps> = ({ navigation }) => {
                     }}
                 />
             </View>
-            <ScrollView showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }}>
+            <ScrollView showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
                 <Animatable.View animation="fadeInUpBig" duration={1000} style={{ paddingTop: 140, flex: 1 }}>
                     {!theme.dark && (
                         <View
@@ -212,7 +215,7 @@ const SignIn: React.FC<SignInProps> = ({ navigation }) => {
                                         placeholderTextColor={colors.text}
                                         placeholder="Enter your username"
                                         value={username}
-                                        onChangeText={setUsername}
+                                        onChangeText={(text) => setUsername(text.replace(/\s/g, ''))}
                                         autoCapitalize="none"
                                         keyboardType="default"
                                         onSubmitEditing={() => passwordRef.current?.focus()}

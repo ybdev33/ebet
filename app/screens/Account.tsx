@@ -13,11 +13,14 @@ import { useTheme } from '@react-navigation/native';
 import { FONTS, SIZES, COLORS } from '../constants/theme';
 import HeaderBar from '../layout/header';
 import { GlobalStyleSheet } from '../constants/styleSheet';
-import CustomButton from '@/app/components/customButton';
-import SuccessModal from "@/app/components/modal/SuccessModal";
-import {getSession} from "@/app/helpers/sessionHelper";
+import CustomButton from '../components/customButton';
+import SuccessModal from "../components/modal/SuccessModal";
+import {getSession} from "../helpers/sessionHelper";
+import Constants from "expo-constants";
 
 const Account: React.FC = () => {
+    const { GAMING_DOMAIN } = Constants.expoConfig?.extra || {};
+    
     const { colors } = useTheme();
     const [focusField, setFocusField] = useState<string | null>(null);
 
@@ -31,12 +34,12 @@ const Account: React.FC = () => {
     useEffect(() => {
         (async () => {
             try {
-                const session = await getSession('userSession');
+                const user = await getSession('userSession');
 
-                if (session) {
-                    setName(session.data.completeName || '');
-                    setUsername(session.data.username || '');
-                    setMobileNumber(session.data.mobileNumber || '');
+                if (user) {
+                    setName(user.data.completeName || '');
+                    setUsername(user.data.username || '');
+                    setMobileNumber(user.data.mobileNumber || '');
                 }
             } catch (error) {
                 console.error('Failed to load user session', error);
@@ -93,7 +96,7 @@ const Account: React.FC = () => {
                 password,
             });
 
-            const response = await fetch('http://64.20.36.34:9580/api/ApplicationUsers/UpdateUser', {
+            const response = await fetch(`${GAMING_DOMAIN}/api/ApplicationUsers/UpdateUser`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -123,7 +126,7 @@ const Account: React.FC = () => {
 
     return (
         <View style={{...styles.container, backgroundColor: colors.background}}>
-            <HeaderBar title="Account Details" leftIcon="back"/>
+            <HeaderBar title="Account Settings" leftIcon="back"/>
             <View style={[GlobalStyleSheet.container, {padding: 0, flex: 1}]}>
                 <ScrollView showsVerticalScrollIndicator={false}>
                     <Animatable.View

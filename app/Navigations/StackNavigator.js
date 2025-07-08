@@ -46,6 +46,8 @@ import Toggles from "../screens/Components/Toggles";
 import {useTheme} from "@react-navigation/native";
 import BetPicker from "../screens/betPicker";
 import Account from '../screens/Account';
+import MarketNewListing from '../components/markets/marketNewListing';
+import Users from '../screens/users';
 
 const MyStatusBar = ({...props}) => (
     <View style={[styles.statusBar]}>
@@ -117,6 +119,7 @@ const StackNavigator = () => {
                 <Stack.Screen name="Tables" component={Tables}/>
                 <Stack.Screen name="Toggles" component={Toggles}/>
                 <Stack.Screen name="betPicker" component={BetPicker}/>
+                <Stack.Screen name="users" component={Users}/>
             </Stack.Navigator>
         </View>
     );

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, {useEffect, useState} from 'react'
 import { 
     View, 
     Text ,
@@ -15,53 +15,13 @@ import HeaderBar from '../layout/header';
 import { COLORS, FONTS, ICONS, IMAGES, SIZES } from '../constants/theme';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { GlobalStyleSheet } from '../constants/styleSheet';
+import {getSession} from "../helpers/sessionHelper";
 
 const Profile = ({navigation}) => {
 
     const {colors} = useTheme();
     const [imgUrl , setImgUrl] = useState(null);
-    
-    const handleProfileImage = async () => {
-
-        if(Platform.OS === 'ios'){
-            let options = {
-                mediaType: 'photo',
-                maxWidth: 200,
-                maxHeight: 200,
-                quality: 1,
-            };
-            launchImageLibrary(options, (response) => {
-                if(!response.didCancel){
-                    setImgUrl(response.assets[0].uri)
-                }
-            })
-        }else{
-            try {
-            await PermissionsAndroid.requestMultiple([
-                PermissionsAndroid.PERMISSIONS.CAMERA,
-                PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE
-            ]).then((result) => {
-                if (result['android.permission.CAMERA']
-                && result['android.permission.READ_EXTERNAL_STORAGE'] === 'granted') {
-                    let options = {
-                        mediaType: 'photo',
-                        maxWidth: 200,
-                        maxHeight: 200,
-                        quality: 1,
-                    };
-                    launchImageLibrary(options, (response) => {
-                        if(!response.didCancel){
-                            setImgUrl(response.assets[0].uri)
-                        }
-                    })
-                }
-            });
-            } catch (err) {
-                console.warn(err);
-            }
-        }
-    
-    }
+    const [userSession, setUserSession] = useState(null);
 
     const navLinks = [
         {
@@ -73,6 +33,11 @@ const Profile = ({navigation}) => {
             icon : ICONS.link,
             title : "Referral",
             navigate : "referral",
+        },
+        {
+            icon : ICONS.customer,
+            title : "Users",
+            navigate : "users",
         },
         {
             icon : ICONS.setting,
@@ -96,6 +61,16 @@ const Profile = ({navigation}) => {
         },
     ]
 
+    useEffect(() => {
+        (async () => {
+            try {
+                const user = await getSession('userSession');
+                setUserSession(user);
+            } catch (error) {
+                console.error('Failed to load user session', error);
+            }
+        })();
+    }, []);
 
     return (
         <View
@@ -109,6 +84,7 @@ const Profile = ({navigation}) => {
                 title={"Profile"}
             />
             <ScrollView
+                showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{
                     paddingBottom:100,
                 }}
@@ -139,7 +115,6 @@ const Profile = ({navigation}) => {
                                 }}
                             />
                             <TouchableOpacity
-                                onPress={() => handleProfileImage()}
                                 activeOpacity={.9}
                                 style={{
                                     height:28,
@@ -153,21 +128,11 @@ const Profile = ({navigation}) => {
                                     justifyContent:'center',
                                 }}
                             >
-                                <FeatherIcon size={14} color={COLORS.white} name='edit'/>
+                                <FeatherIcon size={14} color={COLORS.white} name='user'/>
                             </TouchableOpacity>
                         </View>
                         <View>
-                            <Text style={{...FONTS.h6,color:COLORS.white,marginBottom:7}}>Richard Smith</Text>
-                            <View
-                                style={{
-                                    flexDirection:'row',
-                                    alignItems:'center',
-                                    marginBottom:3,
-                                }}
-                            >
-                                <FeatherIcon style={{marginRight:6}} color={colors.text} size={14} name='mail' />
-                                <Text style={{...FONTS.fontSm,color:COLORS.white,opacity:.6}}>example@gmail.com</Text>
-                            </View>
+                            <Text style={{...FONTS.h6,color:COLORS.white,marginBottom:7}}>{userSession?.data?.completeName || "Loading..."}</Text>
                             <View
                                 style={{
                                     flexDirection:'row',
@@ -175,7 +140,7 @@ const Profile = ({navigation}) => {
                                 }}
                             >
                                 <FeatherIcon style={{marginRight:6}} color={colors.text} size={14} name='phone' />
-                                <Text style={{...FONTS.fontSm,color:COLORS.white,opacity:.6}}>+158 4844 4400</Text>
+                                <Text style={{...FONTS.fontSm,color:COLORS.white,opacity:.6}}>+63 {userSession?.data?.mobileNumber?.replace(/^0+/, '') || "N/A"}</Text>
                             </View>
                         </View>
                     </ImageBackground>

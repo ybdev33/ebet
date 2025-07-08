@@ -15,7 +15,8 @@ import {FONTS, SIZES, COLORS, IMAGES} from '../../constants/theme';
 import CustomButton from '../../components/customButton';
 import {GlobalStyleSheet} from '../../constants/styleSheet';
 import {LinearGradient} from 'expo-linear-gradient';
-import SuccessModal from "@/app/components/modal/SuccessModal";
+import SuccessModal from "../../components/modal/SuccessModal";
+import Constants from 'expo-constants';
 
 interface SignInProps {
     navigation: {
@@ -30,6 +31,8 @@ interface SignInProps {
 }
 
 const SignUp: React.FC<SignInProps> = ({navigation, route }) => {
+    const { GAMING_DOMAIN } = Constants.expoConfig?.extra || {};
+
     const theme = useTheme();
     const {colors} = useTheme();
 
@@ -69,7 +72,9 @@ const SignUp: React.FC<SignInProps> = ({navigation, route }) => {
                 position: userType
             });
 
-            const response = await fetch('http://64.20.36.34:9580/api/ApplicationUsers/CreateUser', {
+            console.log("body", body);
+
+            const response = await fetch(`${GAMING_DOMAIN}/api/ApplicationUsers/CreateUser`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -126,7 +131,7 @@ const SignUp: React.FC<SignInProps> = ({navigation, route }) => {
                 />
             </View>
 
-            <ScrollView showsHorizontalScrollIndicator={false} contentContainerStyle={{flexGrow: 1}}>
+            <ScrollView showsHorizontalScrollIndicator={false} contentContainerStyle={{flexGrow: 1}} keyboardShouldPersistTaps="handled">
                 <Animatable.View animation="fadeInUpBig" duration={1000} style={{paddingTop: 140, flex: 1}}>
                     {!theme.dark && (
                         <View

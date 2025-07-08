@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {
     View,
     Text,
@@ -19,7 +19,11 @@ import { LineChart } from 'react-native-chart-kit';
 import Svg, { Rect , Text as TextSVG } from 'react-native-svg';
 import { GlobalStyleSheet } from '../constants/styleSheet';
 import SuccessModal from "../components/modal/SuccessModal";
-import {getSession} from "@/app/helpers/sessionHelper";
+import {getSession} from "../helpers/sessionHelper";
+import Constants from 'expo-constants';
+import { useFocusEffect } from '@react-navigation/native';
+
+const { GAMING_DOMAIN } = Constants.expoConfig?.extra || {};
 
 const chartTab = [
     {
@@ -91,33 +95,41 @@ const BalanceChart = ({headerTitle,header}) => {
     const [modalMessage, setModalMessage] = useState('');
     const [isSuccess, setIsSuccess] = useState(false);
 
-    useEffect(() => {
-        (async () => {
-            try {
-                const userSession = await getSession('userSession');
-                const userId = userSession.data.userId;
+    useFocusEffect(
+        useCallback(() => {
+            let isActive = true;
 
-                const response = await fetch(`http://64.20.36.34:9580/api/ApplicationUsers/GetUserLoad?userId=${userId}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        // Authorization: 'Settings a2luZ3MzOiF0ZXJ5U3dldGk=',
+            (async () => {
+                try {
+                    const user = await getSession('userSession');
+                    const userId = user.data.userId;
+
+                    const response = await fetch(`${GAMING_DOMAIN}/api/ApplicationUsers/GetUserLoad?userId=${userId}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            // Authorization: 'Settings a2luZ3MzOiF0ZXJ5U3dldGk=',
+                        }
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        const fetchedAmount = result.data?.amount;
+                        setAmount(fetchedAmount);
                     }
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    const fetchedAmount = result.data?.amount;
-                    setAmount(fetchedAmount);
+                } catch (error) {
+                    setModalMessage('Something went wrong. Please try again later.');
+                    setIsSuccess(false);
+                    setModalVisible(true);
                 }
-            } catch (error) {
-                setModalMessage('Something went wrong. Please try again later.');
-                setIsSuccess(false);
-                setModalVisible(true);
-            }
-        })();
-    }, []);
+            })();
+
+            return () => {
+                isActive = false;
+            };
+        }, [])
+    );
 
     return(
         

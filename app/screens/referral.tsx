@@ -14,11 +14,14 @@ import HeaderBar from '../layout/header';
 import { GlobalStyleSheet } from '../constants/styleSheet';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@react-navigation/native';
-import {getSession} from "@/app/helpers/sessionHelper";
-import SuccessModal from "@/app/components/modal/SuccessModal";
+import {getSession} from "../helpers/sessionHelper";
+import SuccessModal from "../components/modal/SuccessModal";
 import * as Clipboard from 'expo-clipboard';
+import Constants from "expo-constants";
 
 const Referral: React.FC = () => {
+    const { GAMING_DOMAIN } = Constants.expoConfig?.extra || {};
+
     const { colors } = useTheme();
 
     const [modalVisible, setModalVisible] = useState(false);
@@ -34,7 +37,7 @@ const Referral: React.FC = () => {
                 const userId = userSession.data.userId;
                 const positionId = userSession.data.positionId;
 
-                const response = await fetch(`http://64.20.36.34:9580/api/ApplicationUsers/GetReferralLink?AuthorId=${userId}&PositionId=${positionId}`, {
+                const response = await fetch(`${GAMING_DOMAIN}/api/ApplicationUsers/GetReferralLink?AuthorId=${userId}&PositionId=${positionId}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
