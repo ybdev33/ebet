@@ -79,8 +79,8 @@ const CustomTabBar = ({state,navigation,descriptors}) => {
                                         <Image
                                             source={ICONS.bet}
                                             style={{
-                                                height:28,
-                                                width:28,
+                                                height:48,
+                                                width:48,
                                             }}
                                         />
                                     </TouchableOpacity>
@@ -97,7 +97,7 @@ const CustomTabBar = ({state,navigation,descriptors}) => {
                                             source={
                                                 label === "Home" ? ICONS.home :
                                                 label === "Wallet" ? ICONS.wallet :
-                                                label === "Market" ? ICONS.colorswatch :
+                                                    label === "History" ? ICONS.history :
                                                 label === "Profile" ? ICONS.profile : null
                                             }
                                             style={{

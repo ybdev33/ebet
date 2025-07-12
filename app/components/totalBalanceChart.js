@@ -104,7 +104,7 @@ const BalanceChart = ({headerTitle,header}) => {
                     const user = await getSession('userSession');
                     const userId = user.data.userId;
 
-                    const response = await fetch(`${GAMING_DOMAIN}/api/ApplicationUsers/GetUserLoad?userId=${userId}`, {
+                    const response = await fetch(`${GAMING_DOMAIN}/api/LoadManagement/GetUserLoad?authorId=${userId}`, {
                         method: 'GET',
                         headers: {
                             'Content-Type': 'application/json',

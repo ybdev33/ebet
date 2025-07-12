@@ -8,7 +8,7 @@ import {
     TextInput,
     TextStyle,
     ViewStyle,
-    ImageStyle,
+    ImageStyle, Modal,
 } from 'react-native';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import { FONTS, SIZES, COLORS, IMAGES, ICONS } from '../../constants/theme';
@@ -21,6 +21,8 @@ import { GlobalStyleSheet } from '../../constants/styleSheet';
 import HeaderBar from '@/app/layout/header';
 import {getSession} from "@/app/helpers/sessionHelper";
 import Constants from 'expo-constants';
+import SuccessModal from "@/app/components/modal/SuccessModal";
+import ReceiptModal from "@/app/components/modal/ReceiptModal";
 
 const { GAMING_DOMAIN } = Constants.expoConfig?.extra || {};
 
@@ -56,6 +58,18 @@ const HistoryLoad: React.FC = () => {
 
     const [accordionData, setAccordionData] = useState<AccordionItem[]>([]);
 
+    const [showReceipt, setShowReceipt] = useState(false);
+    const receiptData = {
+        drawTime: '9PM',
+        betTime: '25-07-05 17:19',
+        combinations: [
+            { label: 'T 842', amount: 6, win: 3600 },
+            { label: 'R 842', amount: 6, win: 600 },
+        ],
+        total: 12,
+        reference: '070525-915us7nrrf4',
+    };
+
     const setSections = (sections: number[]) => {
         setActiveSections(sections.includes(undefined as unknown as number) ? [] : sections);
     };
@@ -80,7 +94,7 @@ const HistoryLoad: React.FC = () => {
                     const result = await response.json();
 
                     if (response.ok && result.status === 1) {
-
+console.log(result);
                         const mappedData = result.data.map((item: any, index: number): AccordionItem => {
                             const isPositive = item.totalAmount.startsWith('+');
 
@@ -264,7 +278,10 @@ const HistoryLoad: React.FC = () => {
                     touchableComponent={View}
                     expandMultiple={true}
                     renderHeader={(item, _, isActive) => (
-                        <View style={styles.accordionHeader}>
+                        <Ripple
+                            onPress={() => setShowReceipt(true)}
+                            style={styles.accordionHeader}
+                        >
                             <View style={{
                                 height: 35,
                                 width: 35,
@@ -287,7 +304,7 @@ const HistoryLoad: React.FC = () => {
                                 <Text style={{ ...FONTS.font, color: item.amount.startsWith('+') ? COLORS.primary : COLORS.danger, marginBottom: 5 }}>{item.amount}</Text>
                             </View>
 
-                        </View>
+                        </Ripple>
                     )}
                     renderContent={(item) => (
                         <View style={[styles.accordionBody, { borderColor: colors.borderColor }]}>
@@ -301,6 +318,31 @@ const HistoryLoad: React.FC = () => {
                     onChange={() => {}}
                 />
             </ScrollView>
+
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <SuccessModal
+                        message={modalMessage}
+                        isSuccess={isSuccess}
+                        onClose={() => setModalVisible(false)}
+                    />
+                </View>
+            </Modal>
+
+            <ReceiptModal
+                visible={showReceipt}
+                onClose={() => setShowReceipt(false)}
+                drawTime={receiptData.drawTime}
+                betTime={receiptData.betTime}
+                combinations={receiptData.combinations}
+                total={receiptData.total}
+                reference={receiptData.reference}
+            />
         </View>
     );
 };
@@ -325,6 +367,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
     } as ViewStyle,
+    modalOverlay: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
 });
 
 export default HistoryLoad;

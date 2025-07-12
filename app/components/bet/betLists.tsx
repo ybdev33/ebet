@@ -33,10 +33,10 @@ class BetLists extends React.Component {
                     theme={this.props.theme}
                     key={item.id}
                     swipingCheck={(swiping) => this.setState({ swiping })}
-                    coin={item.coin}
-                    coinName={item.coinName}
+                    combination={item.combination.join('')}
                     amount={item.amount}
-                    tag={item.tag}
+                    isRmb={item.isRmb}
+                    draw={item.draw}
                     id={item.id}
                     cleanFromScreen={(id) => this.cleanFromScreen(id)}
                     leftButtonPressed={() => console.log('Delete')}

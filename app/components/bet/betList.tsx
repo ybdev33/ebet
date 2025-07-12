@@ -10,13 +10,8 @@ import {
 
 import {COLORS, FONTS, ICONS, SIZES} from '../../constants/theme';
 
-import {
-    LineChart,
-} from "react-native-chart-kit";
 import {LinearGradient} from 'expo-linear-gradient';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
-import Ripple from 'react-native-material-ripple';
-import {GlobalStyleSheet} from '../../constants/styleSheet';
 
 
 class BetList extends React.Component {
@@ -81,7 +76,7 @@ class BetList extends React.Component {
                         paddingLeft: 15,
                         fontSize: 15,
                         marginTop: 5
-                    }}>{this.props.coinName}</Text>
+                    }}>{this.props.combination}</Text>
                     <Text style={{...styles.tbodyItem, color: COLORS.text}}>{this.props.amount}</Text>
                     <Text style={{
                         ...styles.tbodyItem,
@@ -89,7 +84,7 @@ class BetList extends React.Component {
                         flex: 0.5,
                         textAlign: 'right',
                         paddingRight: 15
-                    }}>{this.props.tag}</Text>
+                    }}>{this.props.draw}</Text>
                 </View>
             </Swipeable>
         );

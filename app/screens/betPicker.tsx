@@ -1,63 +1,22 @@
-import React, {useState, useRef} from "react";
+import React, {useState, useRef, useEffect} from "react";
 import {
     View,
     Text,
     TouchableOpacity,
     StyleSheet,
     FlatList,
-    Image,
-    ScrollView,
-    Platform, Animated,
+    Platform,
 } from "react-native";
-import {COLORS, FONTS, ICONS, IMAGES, SIZES} from "../constants/theme";
+import {COLORS, FONTS, SIZES} from "../constants/theme";
 import {useTheme} from "@react-navigation/native";
 import HeaderBet from "@/app/components/Headers/HeaderBet";
 import FeatherIcon from "react-native-vector-icons/Feather";
 import Button from '@/app/components/Button/Button';
 
-import DividerIcon from '@/app/components/Dividers/DividerIcon';
 import StepperInput from "@/app/components/Input/StepperInput";
 import {GlobalStyleSheet} from "@/app/constants/styleSheet";
-import SocialIcon from "@/app/components/Socials/SocialIcon";
-import FontAwesome from "react-native-vector-icons/FontAwesome";
-import WidgetPieChart from "@/app/components/WidgetPieChart";
-import {Checkbox} from "react-native-paper";
 import BetLists from "@/app/components/bet/betLists";
 import Divider from "@/app/components/Dividers/Divider";
-import Ripple from "react-native-material-ripple";
-
-const BalanceList = [
-    {
-        id: '1',
-        coinName: '123',
-        amount: "2,566",
-        tag: "9L2",
-    },
-    {
-        id: '2',
-        coinName: '345',
-        amount: '88,456',
-        tag: "9S2",
-    },
-    {
-        id: '3',
-        coinName: '678901',
-        amount: '88,456',
-        tag: "P3",
-    },
-    {
-        id: '4',
-        coinName: '1123',
-        amount: '88,456',
-        tag: "4D",
-    },
-    {
-        id: '5',
-        coinName: '000000',
-        amount: '88,456',
-        tag: "P3",
-    },
-]
 
 const BetPicker: React.FC = (props) => {
     const {colors} = useTheme();
@@ -71,7 +30,13 @@ const BetPicker: React.FC = (props) => {
         "5 PM": ["S2", "S3"],
         "9 PM": ["S2", "S3", "L2", "L3", "4D", "P3"],
     };
-    const amtOptions = ["1", "5", "10", "15", "20", "25", "30"];
+    const amtOptions = ["", "1", "5", "10", "15", "20", "25", "30"];
+    const [amtIndex, setAmtIndex] = useState(0);
+    const [amtValue, setAmtValue] = useState(amtOptions[amtIndex]);
+
+    const rmbOptions = ["", "1", "5", "10", "15", "20", "25", "30"];
+    const [rmbIndex, setRmbIndex] = useState(0);
+    const [rmbValue, setRmbValue] = useState(rmbOptions[rmbIndex]);
 
     const [timeIndex, setTimeIndex] = useState(0);
     const [timeValue, setTimeValue] = useState(timeOptions[timeIndex]);
@@ -79,9 +44,7 @@ const BetPicker: React.FC = (props) => {
     const [drawIndex, setDrawIndex] = useState(0);
     const [filteredDrawOptions, setFilteredDrawOptions] = useState<string[]>(drawOptionsMap[timeValue]);
     const [drawValue, setDrawValue] = useState(filteredDrawOptions[drawIndex]);
-
-    const [amtIndex, setAmtIndex] = useState(0);
-    const [amtValue, setAmtValue] = useState(amtOptions[amtIndex]);
+    const isRmbEnabled = drawValue === "L3" || drawValue === "S3";
 
     const gridNumbers = Array.from({length: 6}, () =>
         Array.from({length: 10}, (_, colIndex) => colIndex)
@@ -132,32 +95,72 @@ const BetPicker: React.FC = (props) => {
     };
 
     const [allBets, setAllBets] = useState<any[]>([]);
+    const isAddEnabled  = selectedNumbers.filter(n => n !== -1).length >= getDrawLength() &&
+        (
+            (amtValue !== "") ||
+            (isRmbEnabled && rmbValue !== "")
+        );
 
-    const handleBet = () => {
-        const betDetails = {
-            time: timeValue,
-            draw: drawValue,
-            amount: amtValue,
-            selectedNumbers: selectedNumbers.filter(num => num !== -1), // Only include selected numbers
+    const handleBet = (mergeIfExists = false) => {
+        const time = timeValue.match(/\d+/)?.[0] || '';
+        const draw = time + drawValue;
+
+        const filteredNumbers = selectedNumbers.filter(num => num !== -1);
+
+        let newBets = [...allBets];
+        let newId = (newBets.length + 1).toString();
+
+        // Helper to add or merge a bet
+        const addOrMergeBet = (isRmb: boolean, amountValue: string) => {
+            if (!amountValue) return;
+
+            const prefix = isRmb ? "R" : "T";
+            const combination = [prefix, ...filteredNumbers];
+
+            if (mergeIfExists) {
+                const existingBetIndex = newBets.findIndex(bet =>
+                    bet.draw === draw &&
+                    bet.isRmb === isRmb &&
+                    Array.isArray(bet.combination) &&
+                    bet.combination.length === combination.length &&
+                    bet.combination.every((val, idx) => val === combination[idx])
+                );
+
+                if (existingBetIndex !== -1) {
+                    const existingAmount = Number(newBets[existingBetIndex].amount);
+                    const additionalAmount = Number(amountValue);
+                    newBets[existingBetIndex].amount = (existingAmount + additionalAmount).toString();
+                    return;
+                }
+            }
+
+            // Add new bet object
+            newBets.push({
+                id: newId,
+                draw,
+                amount: amountValue,
+                isRmb,
+                combination,
+            });
+            newId = (Number(newId) + 1).toString();
         };
 
-        console.log("Bet details:", betDetails);
+        // Add Target bet if amtValue exists
+        if (amtValue !== "") {
+            addOrMergeBet(false, amtValue);
+        }
 
-        // Example of how to store it in an array (or send to a backend)
-        const betArray = [
-            betDetails.time,
-            betDetails.draw,
-            betDetails.amount,
-            betDetails.selectedNumbers,
-        ];
+        // Add Rambol bet if enabled and rmbValue exists
+        if (isRmbEnabled && rmbValue !== "") {
+            addOrMergeBet(true, rmbValue);
+        }
 
-        console.log("Bet Array:", betArray);
-
-        // Append the new bet to the existing array of bets
-        setAllBets(prevBets => {
-            return [...prevBets, betArray];  // Spread previous bets and add the new one
-        });
+        setAllBets(newBets);
     };
+
+    useEffect(() => {
+        console.log("Updated allBets:", allBets);
+    }, [allBets]);
 
     const renderGridRow = ({item: row, index: rowIndex}: { item: number[]; index: number }) => {
         const isDisabled = rowIndex >= getDrawLength();
@@ -188,10 +191,15 @@ const BetPicker: React.FC = (props) => {
         if (item === "grid") {
             return (
                 <FlatList
+                    ref={flatListRef}
                     data={gridNumbers}
                     renderItem={renderGridRow}
                     keyExtractor={(_, index) => `row-${index}`}
-                    style={styles.gridContainer}
+                    contentContainerStyle={{
+                        paddingBottom: 70,
+                        ...(Platform.OS === 'web' && { flexGrow: 1 }),
+                    }}
+                    keyboardShouldPersistTaps="handled"
                     nestedScrollEnabled={true}
                 />
             );
@@ -244,7 +252,9 @@ const BetPicker: React.FC = (props) => {
                                 editable={false}
                                 flatListRef={flatListRef}
                             />
+                        </View>
 
+                        <View style={[GlobalStyleSheet.col50]}>
                             <StepperInput
                                 label={drawValue}
                                 options={filteredDrawOptions}
@@ -255,9 +265,11 @@ const BetPicker: React.FC = (props) => {
                                 editable={false}
                                 flatListRef={flatListRef}
                             />
+                        </View>
 
+                        <View style={[GlobalStyleSheet.col50]}>
                             <StepperInput
-                                label="Amt"
+                                label="Target"
                                 options={amtOptions}
                                 value={amtValue}
                                 setValue={setAmtValue}
@@ -269,28 +281,57 @@ const BetPicker: React.FC = (props) => {
                         </View>
 
                         <View style={[GlobalStyleSheet.col50]}>
+                            <View
+                                style={{ opacity: isRmbEnabled ? 1 : 0.5 }}
+                                pointerEvents={isRmbEnabled ? 'auto' : 'none'}
+                            >
+                                <StepperInput
+                                    label="Rambol"
+                                    options={rmbOptions}
+                                    value={rmbValue}
+                                    setValue={setRmbValue}
+                                    currentIndex={rmbIndex}
+                                    setCurrentIndex={setRmbIndex}
+                                    flatListRef={flatListRef}
+                                />
+                            </View>
+                        </View>
+                    </View>
+                    <View style={GlobalStyleSheet.row}>
+                        <View style={[GlobalStyleSheet.col33]}>
                             <Button
-                                style={styles.buttonStyle}
                                 color={COLORS.primaryLight}
                                 textColor={COLORS.text}
                                 title={'Clear'}
                                 onPress={handleClear}
                             />
+                        </View>
+
+                        <View style={[GlobalStyleSheet.col33]}>
                             <Button
-                                style={styles.buttonStyle}
                                 color={COLORS.primaryLight}
                                 textColor={COLORS.warning}
                                 title={'Auto Pick'}
                                 onPress={handleAutoPick}
                             />
-                            <Button
-                                style={styles.buttonStyle}
-                                color={COLORS.success}
-                                textColor={COLORS.title}
-                                title={"Bet"}
-                                onPress={handleBet}
-                            />
                         </View>
+
+                        <View style={GlobalStyleSheet.col33}>
+                            <TouchableOpacity
+                                style={[
+                                    styles.iconButton,
+                                    {
+                                        opacity: isAddEnabled ? 1 : 0.5,
+                                    },
+                                ]}
+                                onPress={handleBet}
+                                disabled={!isAddEnabled}
+                            >
+                                <Text style={styles.buttonText}>Add</Text>
+                                <FeatherIcon name="shopping-cart" size={16} color={COLORS.title} style={styles.icon} />
+                            </TouchableOpacity>
+                        </View>
+
                     </View>
                     <View
                         style={{
@@ -327,12 +368,27 @@ const BetPicker: React.FC = (props) => {
                                 }}
                             >{`Bet${allBets.length === 1 ? '' : 's'}`}</Text>
                             <View style={{flexDirection: 'row', alignItems: 'center', marginLeft: 'auto'}}>
+                                <Text style={[styles.cardText, {fontSize: 13, fontWeight: 300, marginRight: 10}]}>View All</Text>
                                 <View>
                                     <FeatherIcon size={16} color={COLORS.white} name='maximize-2'/>
                                 </View>
                             </View>
                         </View>
 
+                        <TouchableOpacity style={[styles.iconButton, {backgroundColor: COLORS.primary}]} onPress={handleBet}>
+                            <Text style={styles.buttonText}>Print</Text>
+                            <FeatherIcon name="send" size={16} color={COLORS.title} style={styles.icon} />
+                        </TouchableOpacity>
+                    </View>
+
+                    <View
+                        style={{
+                            ...GlobalStyleSheet.card,
+                            backgroundColor: colors.card,
+                            marginTop: 20,
+                            ...GlobalStyleSheet.shadow,
+                        }}
+                    >
                         <View
                             style={[
                                 {
@@ -370,15 +426,14 @@ const BetPicker: React.FC = (props) => {
 
                         {allBets.length > 0 ? (
                             <View style={{ maxHeight: 300, overflow: 'scroll' }}>
-                                {allBets.map((bet, index) => (
-                                    <BetLists
-                                        key={`bet-${index}`}
-                                        navigate={props.navigation.navigate}
-                                        destination="Trade"
-                                        data={BalanceList}
-                                        theme={theme}
-                                    />
-                                ))}
+                                <BetLists
+                                    key={allBets.length}
+                                    navigate={props.navigation.navigate}
+                                    destination="Trade"
+                                    data={allBets}
+                                    theme={theme}
+                                />
+
                             </View>
                         ) : (
                             <Text style={{ color: COLORS.text, textAlign: "center", marginTop: 10 }}>
@@ -399,6 +454,13 @@ const BetPicker: React.FC = (props) => {
         setSelectedNumbers(Array(6).fill(-1));
         setAmtIndex(0);
         setAmtValue(amtOptions[0]);
+        setRmbIndex(0);
+        setRmbValue(rmbOptions[0]);
+        setTimeIndex(0);
+        setTimeValue(timeOptions[0]);
+        setDrawIndex(0);
+        setDrawValue(filteredDrawOptions[0]);
+
         setAllBets([]);
     };
 
@@ -426,7 +488,7 @@ const BetPicker: React.FC = (props) => {
                 data={["selectedNumbers", "grid", "controls"]}
                 renderItem={({item}) => renderContent({item})}
                 keyExtractor={(_, index) => `row-${index}`}
-                contentContainerStyle={{paddingBottom: 250}}
+                contentContainerStyle={{paddingBottom: 70}}
                 keyboardShouldPersistTaps="handled"
                 nestedScrollEnabled={true}
             />
@@ -436,7 +498,14 @@ const BetPicker: React.FC = (props) => {
 
 const styles = StyleSheet.create({
     container: {
-        padding: 20
+        flex: 1,
+        padding: 20,
+        ...(Platform.OS === 'web' && {
+            height: '100vh',
+            overflowY: 'auto',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+        }),
     },
     gridContainer: {
         marginBottom: 0
@@ -531,6 +600,34 @@ const styles = StyleSheet.create({
         flexBasis: 140,
         flexShrink: 2,
     },
+    iconButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: COLORS.warning,
+        paddingVertical: 10,
+        borderRadius: 8,
+    },
+    icon: {
+    },
+    buttonText: {
+        color: COLORS.title,
+        fontWeight: 'bold',
+        fontSize: 16,
+        marginRight: 5,
+        paddingVertical: 1,
+    },
 });
+
+if (Platform.OS === 'web')
+{
+    const style = document.createElement("style");
+    style.innerHTML = `
+            ::-webkit-scrollbar {
+                display: none;
+            }
+        `;
+    document.head.appendChild(style);
+}
 
 export default BetPicker;
