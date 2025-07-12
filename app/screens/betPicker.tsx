@@ -110,11 +110,10 @@ const BetPicker: React.FC = (props) => {
         let newBets = [...allBets];
         let newId = (newBets.length + 1).toString();
 
-        // Helper to add or merge a bet
         const addOrMergeBet = (isRmb: boolean, amountValue: string) => {
             if (!amountValue) return;
 
-            const prefix = isRmb ? "R" : "T";
+            const prefix = isRmb ? "R " : "T ";
             const combination = [prefix, ...filteredNumbers];
 
             if (mergeIfExists) {
@@ -134,7 +133,6 @@ const BetPicker: React.FC = (props) => {
                 }
             }
 
-            // Add new bet object
             newBets.push({
                 id: newId,
                 draw,
@@ -145,12 +143,10 @@ const BetPicker: React.FC = (props) => {
             newId = (Number(newId) + 1).toString();
         };
 
-        // Add Target bet if amtValue exists
         if (amtValue !== "") {
             addOrMergeBet(false, amtValue);
         }
 
-        // Add Rambol bet if enabled and rmbValue exists
         if (isRmbEnabled && rmbValue !== "") {
             addOrMergeBet(true, rmbValue);
         }
