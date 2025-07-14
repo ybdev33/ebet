@@ -410,7 +410,7 @@ const BetPicker: React.FC = (props) => {
                             >
                                 Combination
                             </Text>
-                            <Text numberOfLines={1} style={{color: colors.text, ...styles.tableItemHead}}>Amt</Text>
+                            <Text numberOfLines={1} style={{color: colors.text, ...styles.tableItemHead}}>Amount</Text>
                             <View
                                 style={{
                                     alignItems: 'flex-end',
@@ -421,7 +421,7 @@ const BetPicker: React.FC = (props) => {
                         </View>
 
                         {allBets.length > 0 ? (
-                            <View style={{ maxHeight: 300, overflow: 'scroll' }}>
+                            <View style={{ overflow: 'scroll' }}>
                                 <BetLists
                                     key={allBets.length}
                                     navigate={props.navigation.navigate}
