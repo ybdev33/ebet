@@ -5,7 +5,8 @@ import {
     TouchableOpacity,
     StyleSheet,
     FlatList,
-    Platform,
+    Platform, TextInput,
+    KeyboardAvoidingView,
 } from "react-native";
 import {COLORS, FONTS, SIZES} from "../constants/theme";
 import {useTheme} from "@react-navigation/native";
@@ -154,7 +155,12 @@ const BetPicker: React.FC = (props) => {
         setAllBets(newBets);
     };
 
+    const inputRefs = useRef<Array<TextInput | null>>([]);
+
     useEffect(() => {
+        setTimeout(() => {
+            inputRefs.current[0]?.focus();
+        }, 300);
         console.log("Updated allBets:", allBets);
     }, [allBets]);
 
@@ -208,23 +214,53 @@ const BetPicker: React.FC = (props) => {
                             const isDisabled = index >= getDrawLength();
                             return (
                                 <View key={index} style={styles.numberWrapper}>
-                                    {!isDisabled && num !== -1 ? (
-                                        <Text style={[styles.numberText]}>
-                                            {num}
-                                        </Text>
-                                    ) : (
-                                        <Text style={[styles.numberText, {color: COLORS.light}]}>
-                                            {}
-                                        </Text>
-                                    )}
-                                    <Text
+                                    <TextInput
+                                        ref={(ref) => inputRefs.current[index] = ref}
                                         style={[
-                                            styles.underscore,
-                                            isDisabled && {color: COLORS.dark},
+                                            styles.numberTextInput,
+                                            isDisabled && styles.numberTextInputDisabled,
                                         ]}
-                                    >
-                                        _
-                                    </Text>
+                                        editable={!isDisabled}
+                                        keyboardType="numeric"
+                                        maxLength={1}
+                                        value={num !== -1 ? num.toString() : ""}
+                                        onChangeText={(text) => {
+                                            const updated = [...selectedNumbers];
+
+                                            if (text === "" || text === "\u200B") {
+                                                updated[index] = -1;
+                                                setSelectedNumbers(updated);
+                                                return;
+                                            }
+
+                                            const n = parseInt(text, 10);
+                                            if (!isNaN(n)) {
+                                                updated[index] = n;
+                                                setSelectedNumbers(updated);
+
+                                                for (let next = index + 1; next < selectedNumbers.length; next++) {
+                                                    if (next < getDrawLength()) {
+                                                        inputRefs.current[next]?.focus();
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }}
+                                        onKeyPress={({ nativeEvent }) => {
+                                            if (nativeEvent.key === "Backspace" && selectedNumbers[index] === -1) {
+                                                const prevIndex = index - 1;
+                                                if (prevIndex >= 0) {
+                                                    const updated = [...selectedNumbers];
+                                                    updated[prevIndex] = -1;
+                                                    setSelectedNumbers(updated);
+                                                    inputRefs.current[prevIndex]?.focus();
+                                                }
+                                            }
+                                        }}
+                                        textAlign="center"
+                                        returnKeyType="next"
+                                    />
+                                    <Text style={[styles.underscore, isDisabled && {color: COLORS.dark}]}>_</Text>
                                 </View>
                             );
                         })}
@@ -234,8 +270,6 @@ const BetPicker: React.FC = (props) => {
         } else if (item === "controls") {
             return (
                 <View>
-                    <Divider color={COLORS.darkBorder}/>
-
                     <View style={[GlobalStyleSheet.row]}>
                         <View style={[GlobalStyleSheet.col50]}>
                             <StepperInput
@@ -474,20 +508,25 @@ const BetPicker: React.FC = (props) => {
                     shadowRadius: 4.65,
 
                     elevation: 8,
-                    marginBottom: 15,
+                    marginBottom: 10,
                 }}
             >
                 <HeaderBet/>
             </View>
-            <FlatList
-                ref={flatListRef}
-                data={["selectedNumbers", "grid", "controls"]}
-                renderItem={({item}) => renderContent({item})}
-                keyExtractor={(_, index) => `row-${index}`}
-                contentContainerStyle={{paddingBottom: 70}}
-                keyboardShouldPersistTaps="handled"
-                nestedScrollEnabled={true}
-            />
+            <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : undefined}
+                style={{ flex: 1 }}
+            >
+                <FlatList
+                    ref={flatListRef}
+                    data={["grid", "selectedNumbers", "controls"]}
+                    renderItem={({item}) => renderContent({item})}
+                    keyExtractor={(_, index) => `row-${index}`}
+                    contentContainerStyle={{paddingBottom: 70}}
+                    keyboardShouldPersistTaps="always"
+                    nestedScrollEnabled={true}
+                />
+            </KeyboardAvoidingView>
         </View>
     );
 };
@@ -526,19 +565,21 @@ const styles = StyleSheet.create({
         color: COLORS.white,
     },
     selectedNumbers: {
-        marginVertical: 7,
         alignItems: "center",
+        marginBottom: 15,
     },
     sectionTitle: {
-        color: COLORS.text,
+        color: COLORS.dark,
         textAlign: "center",
         fontSize: 13,
-        marginBottom: 10,
+        marginTop: 10,
+        marginBottom: 15,
     },
     numberDisplay: {
         flexDirection: "row",
         justifyContent: "space-evenly",
         width: "100%",
+        flexWrap: "nowrap",
     },
     numberWrapper: {
         alignItems: "center",
@@ -612,6 +653,32 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginRight: 5,
         paddingVertical: 1,
+    },
+    numberWrapper: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    numberTextInput: {
+        width: 30,
+        height: 27,
+        fontSize: 27,
+        fontWeight: 'bold',
+        color: COLORS.success,
+        textAlign: 'center',
+        paddingVertical: 0,
+        paddingHorizontal: 0,
+        lineHeight: 27,
+    },
+    numberTextInputDisabled: {
+        fontSize: 27,
+        color: COLORS.light,
+    },
+    underscore: {
+        fontSize: 27,
+        fontWeight: 'bold',
+        marginTop: -20,
+        color: COLORS.text,
+        lineHeight: 27,
     },
 });
 

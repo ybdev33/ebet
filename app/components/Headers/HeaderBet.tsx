@@ -30,7 +30,7 @@ const HeaderBet: React.FC = () => {
 
 const styles = StyleSheet.create({
     container: {
-        height: 70,
+        height: 50,
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 15,
