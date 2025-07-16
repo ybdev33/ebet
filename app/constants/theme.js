@@ -132,7 +132,6 @@ export const ICONS = {
 	check : require('../assets/images/icons/check.png'),
 	verified : require('../assets/images/icons/verified.png'),
 	history : require('../assets/images/icons/history.png'),
-	history2 : require('../assets/images/icons/history2.png'),
 	support : require('../assets/images/icons/support.png'),
 	link : require('../assets/images/icons/link.png'),
 	badge : require('../assets/images/icons/badge.png'),

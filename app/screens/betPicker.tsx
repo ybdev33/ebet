@@ -63,6 +63,37 @@ const BetPicker: React.FC = (props) => {
         setDrawValue(updatedDrawOptions[0]);
     };
 
+    const handleDrawChange = (index: number) => {
+        setDrawValue(filteredDrawOptions[index]);
+
+        const updated = [...selectedNumbers];
+        const updatedIndex = getDrawLength();
+
+        switch (updatedIndex) {
+            case 3:
+                updated[2] = -1;
+                break;
+            case 4:
+                updated[3] = -1;
+                break;
+            case 6:
+                updated[4] = -1;
+                updated[5] = -1;
+                break;
+            default:
+                break;
+        }
+
+        setSelectedNumbers(updated);
+
+        setTimeout(() => {
+            const inputRef = inputRefs.current[updatedIndex];
+            if (inputRef) {
+                inputRef.focus();
+            }
+        }, 300);
+    };
+    
     const getDrawLength = () => {
         const drawLengths: { [key: string]: number } = {
             S2: 2,
@@ -153,9 +184,13 @@ const BetPicker: React.FC = (props) => {
         }
 
         setAllBets(newBets);
+
+        handleClear(true); 
     };
 
     const inputRefs = useRef<Array<TextInput | null>>([]);
+    const targetRef = useRef<TextInput>(null);
+    const rambolRef = useRef<TextInput>(null);
 
     useEffect(() => {
         setTimeout(() => {
@@ -257,6 +292,9 @@ const BetPicker: React.FC = (props) => {
                                                 }
                                             }
                                         }}
+                                        onSubmitEditing={() => {
+                                            targetRef.current?.focus();
+                                        }}
                                         textAlign="center"
                                         returnKeyType="next"
                                     />
@@ -289,7 +327,7 @@ const BetPicker: React.FC = (props) => {
                                 label={drawValue}
                                 options={filteredDrawOptions}
                                 value=""
-                                setValue={(value) => setDrawValue(value)}
+                                setValue={(value) => handleDrawChange(filteredDrawOptions.indexOf(value))}
                                 currentIndex={drawIndex}
                                 setCurrentIndex={setDrawIndex}
                                 editable={false}
@@ -299,6 +337,7 @@ const BetPicker: React.FC = (props) => {
 
                         <View style={[GlobalStyleSheet.col50]}>
                             <StepperInput
+                                ref={targetRef}
                                 label="Target"
                                 options={amtOptions}
                                 value={amtValue}
@@ -307,6 +346,13 @@ const BetPicker: React.FC = (props) => {
                                 setCurrentIndex={setAmtIndex}
                                 editable={true}
                                 flatListRef={flatListRef}
+                                onSubmitEditing={() => {
+                                    if (isRmbEnabled) {
+                                        rambolRef.current?.focus();
+                                    } else {
+                                        handleBet();
+                                    }
+                                }}
                             />
                         </View>
 
@@ -316,6 +362,7 @@ const BetPicker: React.FC = (props) => {
                                 pointerEvents={isRmbEnabled ? 'auto' : 'none'}
                             >
                                 <StepperInput
+                                    ref={rambolRef}
                                     label="Rambol"
                                     options={rmbOptions}
                                     value={rmbValue}
@@ -323,6 +370,7 @@ const BetPicker: React.FC = (props) => {
                                     currentIndex={rmbIndex}
                                     setCurrentIndex={setRmbIndex}
                                     flatListRef={flatListRef}
+                                    onSubmitEditing={handleBet}
                                 />
                             </View>
                         </View>
@@ -480,7 +528,7 @@ const BetPicker: React.FC = (props) => {
         return null;
     };
 
-    const handleClear = () => {
+    const handleClear = (isBet = false) => {
         setSelectedNumbers(Array(6).fill(-1));
         setAmtIndex(0);
         setAmtValue(amtOptions[0]);
@@ -491,7 +539,11 @@ const BetPicker: React.FC = (props) => {
         setDrawIndex(0);
         setDrawValue(filteredDrawOptions[0]);
 
-        setAllBets([]);
+        if(!isBet)
+        {
+            setAllBets([]);
+        }
+
     };
 
     return (
