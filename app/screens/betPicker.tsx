@@ -17,7 +17,7 @@ import Button from '@/app/components/Button/Button';
 import StepperInput from "@/app/components/Input/StepperInput";
 import {GlobalStyleSheet} from "@/app/constants/styleSheet";
 import BetLists from "@/app/components/bet/betLists";
-import Divider from "@/app/components/Dividers/Divider";
+import BetsModal from "@/app/components/modal/betsModal";
 
 const BetPicker: React.FC = (props) => {
     const {colors} = useTheme();
@@ -124,6 +124,8 @@ const BetPicker: React.FC = (props) => {
         }
 
         setSelectedNumbers(updatedSelection);
+
+        targetRef.current?.focus();
     };
 
     const [allBets, setAllBets] = useState<any[]>([]);
@@ -191,6 +193,7 @@ const BetPicker: React.FC = (props) => {
     const inputRefs = useRef<Array<TextInput | null>>([]);
     const targetRef = useRef<TextInput>(null);
     const rambolRef = useRef<TextInput>(null);
+    const [showBetsModal, setShowBetsModal] = useState(false);
 
     useEffect(() => {
         setTimeout(() => {
@@ -446,12 +449,17 @@ const BetPicker: React.FC = (props) => {
                                 }}
                             >{`Bet${allBets.length === 1 ? '' : 's'}`}</Text>
                             <View style={{flexDirection: 'row', alignItems: 'center', marginLeft: 'auto'}}>
-                                <Text style={[styles.cardText, {fontSize: 13, fontWeight: 300, marginRight: 10}]}>View All</Text>
-                                <View>
-                                    <FeatherIcon size={16} color={COLORS.white} name='maximize-2'/>
-                                </View>
+                                <TouchableOpacity
+                                    onPress={() => setShowBetsModal(true)}
+                                    style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 'auto' }}
+                                >
+                                    <Text style={[styles.cardText, { fontSize: 13, fontWeight: 300, marginRight: 10 }]}>View All</Text>
+                                    <FeatherIcon size={16} color={COLORS.white} name='maximize-2' />
+                                </TouchableOpacity>
                             </View>
                         </View>
+
+                        <View  style={{marginTop:0, marginVertical: 15, borderTopWidth: 1}}></View>
 
                         <TouchableOpacity style={[styles.iconButton, {backgroundColor: COLORS.primary}]} onPress={handleBet}>
                             <Text style={styles.buttonText}>Print</Text>
@@ -459,68 +467,12 @@ const BetPicker: React.FC = (props) => {
                         </TouchableOpacity>
                     </View>
 
-                    <View
-                        style={{
-                            ...GlobalStyleSheet.card,
-                            backgroundColor: colors.card,
-                            marginTop: 20,
-                            ...GlobalStyleSheet.shadow,
-                        }}
-                    >
-                        <View
-                            style={[
-                                {
-                                    backgroundColor: colors.background,
-                                    borderRadius: 8,
-                                    flexDirection: 'row',
-                                    height: 40,
-                                    alignItems: 'center',
-                                    width: '100%',
-                                    ...GlobalStyleSheet.shadow,
-                                },
-                            ]}
-                        >
-                            <Text
-                                numberOfLines={1}
-                                style={{
-                                    color: colors.text,
-                                    ...styles.tableItemHead,
-                                    flexShrink: 0,
-                                    flexWrap: 'nowrap',
-                                    minWidth: 150,
-                                }}
-                            >
-                                Combination
-                            </Text>
-                            <Text numberOfLines={1} style={{color: colors.text, ...styles.tableItemHead}}>Amount</Text>
-                            <View
-                                style={{
-                                    alignItems: 'flex-end',
-                                }}
-                            >
-                                <Text style={{...FONTS.font, ...FONTS.fontMedium, color: colors.text}}>Draw</Text>
-                            </View>
-                        </View>
-
-                        {allBets.length > 0 ? (
-                            <View style={{ overflow: 'scroll' }}>
-                                <BetLists
-                                    key={allBets.length}
-                                    navigate={props.navigation.navigate}
-                                    destination="Trade"
-                                    data={allBets}
-                                    theme={theme}
-                                />
-
-                            </View>
-                        ) : (
-                            <Text style={{ color: COLORS.text, textAlign: "center", marginTop: 10 }}>
-                                No bets placed yet.
-                            </Text>
-                        )}
-
-                    </View>
-
+                    <BetsModal
+                        visible={showBetsModal}
+                        onClose={() => setShowBetsModal(false)}
+                        data={allBets}
+                        navigate={props.navigation.navigate}
+                    />
                 </View>
             )
                 ;
