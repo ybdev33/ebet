@@ -1,7 +1,10 @@
 import React from 'react';
-import { Modal, View, Text, StyleSheet, Image, ScrollView } from 'react-native';
+import { Modal, View, Text, StyleSheet, Image, ScrollView, ImageBackground } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
-import { COLORS, FONTS, SIZES } from '../../constants/theme';
+import { IMAGES } from '../../constants/theme';
+import Constants from "expo-constants";
+
+const { GAMING_NAME } = Constants.expoConfig?.extra || {};
 
 interface Combination {
     label: string;
@@ -31,9 +34,14 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
     return (
         <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
             <View style={styles.overlay}>
-                <View style={styles.container}>
+                <ImageBackground
+                    source={IMAGES.luckySwerty}
+                    style={styles.container}
+                    imageStyle={{ opacity: 0.1 }}
+                    resizeMode="repeat"
+                >
                     <Text style={styles.header}>Philippine Online Sweepstakes</Text>
-                    <Text style={styles.subHeader}>Lucky8Swerty</Text>
+                    <Text style={styles.subHeader}>{GAMING_NAME}</Text>
                     <Text style={styles.receiptLabel}>OFFICIAL RECEIPT</Text>
 
                     <Text style={styles.info}>Draw Time: {drawTime}</Text>
@@ -56,7 +64,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
                         <Text style={styles.reference}>REFERENCE NUMBER</Text>
                         <Text style={styles.referenceValue}>{reference}</Text>
                     </View>
-                </View>
+                </ImageBackground>
             </View>
         </Modal>
     );
@@ -69,11 +77,16 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    background: {
+        flex: 1,
+        width: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     container: {
-        backgroundColor: '#fff',
+        backgroundColor: 'rgba(255,255,255,0.95)',
         padding: 20,
         borderRadius: 10,
-        width: '85%',
         alignItems: 'center',
     },
     header: {

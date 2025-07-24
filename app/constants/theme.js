@@ -97,6 +97,7 @@ export const IMAGES = {
 	event2 : require('../assets/images/event/pic2.png'),
 	event3 : require('../assets/images/event/pic3.png'),
 	logoIcon : require('../assets/images/logo-icon.png'),
+	luckySwerty : require('../assets/images/background/luckySwerty.png'),
 }
 
 export const ICONS = {

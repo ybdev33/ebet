@@ -6,7 +6,7 @@ import {
     StyleSheet,
     FlatList,
     Platform, TextInput,
-    KeyboardAvoidingView,
+    KeyboardAvoidingView, Modal,
 } from "react-native";
 import {COLORS, FONTS, SIZES} from "../constants/theme";
 import {useTheme} from "@react-navigation/native";
@@ -16,8 +16,13 @@ import Button from '@/app/components/Button/Button';
 
 import StepperInput from "@/app/components/Input/StepperInput";
 import {GlobalStyleSheet} from "@/app/constants/styleSheet";
-import BetLists from "@/app/components/bet/betLists";
 import BetsModal from "@/app/components/modal/betsModal";
+import ReceiptModal from "@/app/components/modal/ReceiptModal";
+import Constants from "expo-constants";
+import {getSession} from "@/app/helpers/sessionHelper";
+import SuccessModal from "@/app/components/modal/SuccessModal";
+
+const { GAMING_DOMAIN } = Constants.expoConfig?.extra || {};
 
 const BetPicker: React.FC = (props) => {
     const {colors} = useTheme();
@@ -69,27 +74,22 @@ const BetPicker: React.FC = (props) => {
         const updated = [...selectedNumbers];
         const updatedIndex = getDrawLength();
 
-        switch (updatedIndex) {
-            case 3:
-                updated[2] = -1;
-                break;
-            case 4:
-                updated[3] = -1;
-                break;
-            case 6:
-                updated[4] = -1;
-                updated[5] = -1;
-                break;
-            default:
-                break;
-        }
+        const updateMap: Record<number, number[]> = {
+            3: [2],
+            4: [3],
+            6: [4, 5],
+        };
+
+        updateMap[updatedIndex]?.forEach(pos => {
+            updated[pos] = -1;
+        });
 
         setSelectedNumbers(updated);
 
         setTimeout(() => {
-            const inputRef = inputRefs.current[updatedIndex];
-            if (inputRef) {
-                inputRef.focus();
+            const nextIndexToFocus = updated.findIndex(val => val === -1);
+            if (nextIndexToFocus !== -1) {
+                inputRefs.current[nextIndexToFocus]?.focus();
             }
         }, 300);
     };
@@ -188,6 +188,71 @@ const BetPicker: React.FC = (props) => {
         setAllBets(newBets);
 
         handleClear(true); 
+    };
+
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalMessage, setModalMessage] = useState('');
+    const [isSuccess, setIsSuccess] = useState(false);
+
+    const handlePrint = async () => {
+        console.log("handlePrint");
+        setShowReceipt(true);
+        return;
+        try {
+            const user = await getSession('userSession');
+            const userId = user.data.userId;
+
+            let body = JSON.stringify({
+                "authorId": userId,
+                "dateTimeApp": "2025-07-24T11:41:30.445Z",
+                "drawTime": "string",
+                "bets": [
+                    {
+                        "drawCategory": "string",
+                        "winCombination": "string",
+                        "amount": 0,
+                        "isRambol": 0
+                    }
+                ]
+            });
+
+            const response = await fetch(`${GAMING_DOMAIN}/api/Common/CreateUserBet`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Authorization: 'Settings a2luZ3MzOiF0ZXJ5U3dldGk=',
+                },
+                body: body
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.status === 1) {
+                console.log(result);
+
+                // setShowReceipt(true);
+            } else {
+                setModalMessage(result.message);
+                setIsSuccess(false);
+                setModalVisible(true);
+            }
+        } catch (error) {
+            setModalMessage('Something went wrong. Please try again later.');
+            setIsSuccess(false);
+            setModalVisible(true);
+        }
+    };
+
+    const [showReceipt, setShowReceipt] = useState(false);
+    const receiptData = {
+        drawTime: '9PM',
+        betTime: '25-07-05 17:19',
+        combinations: [
+            { label: 'T 842', amount: 6, win: 3600 },
+            { label: 'R 842', amount: 6, win: 600 },
+        ],
+        total: 12,
+        reference: '070525-915us7nrrf4',
     };
 
     const inputRefs = useRef<Array<TextInput | null>>([]);
@@ -461,7 +526,17 @@ const BetPicker: React.FC = (props) => {
 
                         <View  style={{marginTop:0, marginVertical: 15, borderTopWidth: 1}}></View>
 
-                        <TouchableOpacity style={[styles.iconButton, {backgroundColor: COLORS.primary}]} onPress={handleBet}>
+                        <TouchableOpacity
+                            style={[
+                                styles.iconButton,
+                                {
+                                    backgroundColor: COLORS.primary,
+                                    opacity: allBets.length > 0 ? 1 : 0.5,
+                                },
+                            ]}
+                            onPress={() => handlePrint()}
+                            disabled={allBets.length === 0}
+                        >
                             <Text style={styles.buttonText}>Print</Text>
                             <FeatherIcon name="send" size={16} color={COLORS.title} style={styles.icon} />
                         </TouchableOpacity>
@@ -473,6 +548,31 @@ const BetPicker: React.FC = (props) => {
                         data={allBets}
                         navigate={props.navigation.navigate}
                     />
+
+                    <ReceiptModal
+                        visible={showReceipt}
+                        onClose={() => setShowReceipt(false)}
+                        drawTime={receiptData.drawTime}
+                        betTime={receiptData.betTime}
+                        combinations={receiptData.combinations}
+                        total={receiptData.total}
+                        reference={receiptData.reference}
+                    />
+
+                    <Modal
+                        animationType="fade"
+                        transparent={true}
+                        visible={modalVisible}
+                        onRequestClose={() => setModalVisible(false)}
+                    >
+                        <View style={styles.modalOverlay}>
+                            <SuccessModal
+                                message={modalMessage}
+                                isSuccess={isSuccess}
+                                onClose={() => setModalVisible(false)}
+                            />
+                        </View>
+                    </Modal>
                 </View>
             )
                 ;
@@ -657,10 +757,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginRight: 5,
         paddingVertical: 1,
-    },
-    numberWrapper: {
-        alignItems: 'center',
-        justifyContent: 'center',
     },
     numberTextInput: {
         width: 30,
