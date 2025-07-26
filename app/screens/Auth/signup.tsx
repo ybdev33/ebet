@@ -132,7 +132,7 @@ const SignUp: React.FC<SignInProps> = ({navigation, route }) => {
             </View>
 
             <ScrollView showsHorizontalScrollIndicator={false} contentContainerStyle={{flexGrow: 1}} keyboardShouldPersistTaps="handled">
-                <Animatable.View animation="fadeInUpBig" duration={1000} style={{paddingTop: 140, flex: 1}}>
+                <Animatable.View animation="fadeInUpBig" duration={1000} style={{paddingTop: 130, flex: 1}}>
                     {!theme.dark && (
                         <View
                             style={{

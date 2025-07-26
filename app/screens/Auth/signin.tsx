@@ -136,7 +136,7 @@ const SignIn: React.FC<SignInProps> = ({ navigation }) => {
                 />
             </View>
             <ScrollView showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
-                <Animatable.View animation="fadeInUpBig" duration={1000} style={{ paddingTop: 140, flex: 1 }}>
+                <Animatable.View animation="fadeInUpBig" duration={1000} style={{ paddingTop: 130, flex: 1 }}>
                     {!theme.dark && (
                         <View
                             style={{
@@ -268,7 +268,7 @@ const SignIn: React.FC<SignInProps> = ({ navigation }) => {
                                     </TouchableOpacity>
                                 </View>
                             </Animatable.View>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 15 }}>
                                 <Animatable.View
                                     animation="fadeInLeft"
                                     duration={1000}

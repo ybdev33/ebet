@@ -27,9 +27,10 @@ interface BetsModalProps {
     onClose: () => void;
     data: Bet[];
     navigate: (destination: string) => void;
+    onPrint: () => void;
 }
 
-const BetsModal: React.FC<BetsModalProps> = ({ visible, onClose, data, navigate }) => {
+const BetsModal: React.FC<BetsModalProps> = ({ visible, onClose, data, navigate, onPrint }) => {
     const theme = useTheme();
     const { colors } = theme;
 
@@ -114,7 +115,7 @@ const BetsModal: React.FC<BetsModalProps> = ({ visible, onClose, data, navigate 
                                     />
 
                                     <View  style={{marginTop:0, marginVertical: 15, borderTopWidth: 1}}></View>
-                                    <TouchableOpacity style={[styles.iconButton, {backgroundColor: COLORS.primary}]}>
+                                    <TouchableOpacity style={[styles.iconButton, {backgroundColor: COLORS.primary}]} onPress={onPrint}>
                                         <Text style={styles.buttonText}>Print</Text>
                                         <FeatherIcon name="send" size={16} color={COLORS.title} style={styles.icon} />
                                     </TouchableOpacity>

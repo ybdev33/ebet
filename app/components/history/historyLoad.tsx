@@ -59,19 +59,59 @@ const HistoryLoad: React.FC = () => {
     const [accordionData, setAccordionData] = useState<AccordionItem[]>([]);
 
     const [showReceipt, setShowReceipt] = useState(false);
-    const receiptData = {
-        drawTime: '9PM',
-        betTime: '25-07-05 17:19',
-        combinations: [
-            { label: 'T 842', amount: 6, win: 3600 },
-            { label: 'R 842', amount: 6, win: 600 },
-        ],
-        total: 12,
-        reference: '070525-915us7nrrf4',
-    };
+    const [receiptData, setReceiptData] = useState({
+        drawTime: '',
+        betTime: '',
+        combinations: [],
+        total: 0,
+        reference: '',
+    });
 
-    const setSections = (sections: number[]) => {
-        setActiveSections(sections.includes(undefined as unknown as number) ? [] : sections);
+    const handleHistoryBet = async (referenceId: string) => {
+        try {
+            const user = await getSession('userSession');
+            const userId = user.data.userId;
+
+            const response = await fetch(`${GAMING_DOMAIN}/api/LoadManagement/GetHistoryTransactionDetails?TransactionCode=${referenceId.replace(/^#/, '')}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // Authorization: 'Settings a2luZ3MzOiF0ZXJ5U3dldGk=',
+                },
+            });
+
+            const result = await response.json();
+            if (response.ok && result.status === 1) {
+                const combinations = result.data.bets.map((bet: any) => {
+                    const prefix = bet.isRambol ? 'R' : 'T';
+                    const label = `${prefix} ${bet.winCombination ?? '---'}`;
+                    return {
+                        label,
+                        amount: bet.amount,
+                        draw: bet.drawCategory,
+                        win: bet.winningAmount ?? 0,
+                    };
+                });
+
+                setReceiptData({
+                    drawTime: result.data.drawTime,
+                    betTime: result.data.dateTimeServer,
+                    combinations,
+                    total: result.data.totalAmount,
+                    reference: result.data.transCode,
+                });
+
+                setShowReceipt(true);
+            } else {
+                setModalMessage(result.message);
+                setIsSuccess(false);
+                setModalVisible(true);
+            }
+        } catch (error) {
+            setModalMessage('Something went wrong. Please try again later.');
+            setIsSuccess(false);
+            setModalVisible(true);
+        }
     };
 
     useFocusEffect(
@@ -82,8 +122,9 @@ const HistoryLoad: React.FC = () => {
                 try {
                     const user = await getSession('userSession');
                     const userId = user.data.userId;
+                    const date = new Date().toISOString().split("T")[0];
 
-                    const response = await fetch(`${GAMING_DOMAIN}/api/LoadManagement/GetHistoryTransaction?authorId=${userId}&date=07-07-2025`, {
+                    const response = await fetch(`${GAMING_DOMAIN}/api/LoadManagement/GetHistoryTransaction?authorId=${userId}&date=${date}`, {
                         method: 'GET',
                         headers: {
                             'Content-Type': 'application/json',
@@ -94,7 +135,7 @@ const HistoryLoad: React.FC = () => {
                     const result = await response.json();
 
                     if (response.ok && result.status === 1) {
-console.log(result);
+                        console.log(result);
                         const mappedData = result.data.map((item: any, index: number): AccordionItem => {
                             const isPositive = item.totalAmount.startsWith('+');
 
@@ -119,7 +160,7 @@ console.log(result);
                                 coin,
                                 amount: item.totalAmount,
                                 date: new Date(item.dateCreated).toLocaleString(),
-                                referenceId: `#${item.referenceId}`,
+                                referenceId: `#${item.transactionCode}`,
                                 transactionDescription: item.transactionDescription,
                             };
                         });
@@ -279,7 +320,11 @@ console.log(result);
                     expandMultiple={true}
                     renderHeader={(item, _, isActive) => (
                         <Ripple
-                            onPress={() => setShowReceipt(true)}
+                            onPress={() => {
+                                if (item.transactionDescription.includes("Bet")) {
+                                    handleHistoryBet(item.referenceId);
+                                }
+                            }}
                             style={styles.accordionHeader}
                         >
                             <View style={{

@@ -1,4 +1,4 @@
-import React, {useState, useRef, useEffect} from "react";
+import React, {useState, useRef, useEffect, useCallback, useMemo} from "react";
 import {
     View,
     Text,
@@ -9,7 +9,7 @@ import {
     KeyboardAvoidingView, Modal,
 } from "react-native";
 import {COLORS, FONTS, SIZES} from "../constants/theme";
-import {useTheme} from "@react-navigation/native";
+import {useFocusEffect, useTheme} from "@react-navigation/native";
 import HeaderBet from "@/app/components/Headers/HeaderBet";
 import FeatherIcon from "react-native-vector-icons/Feather";
 import Button from '@/app/components/Button/Button';
@@ -194,26 +194,32 @@ const BetPicker: React.FC = (props) => {
     const [modalMessage, setModalMessage] = useState('');
     const [isSuccess, setIsSuccess] = useState(false);
 
+    const [showReceipt, setShowReceipt] = useState(false);
+    const [receiptData, setReceiptData] = useState({
+        drawTime: '',
+        betTime: '',
+        combinations: [],
+        total: 0,
+        reference: '',
+    });
+
     const handlePrint = async () => {
-        console.log("handlePrint");
-        setShowReceipt(true);
-        return;
         try {
             const user = await getSession('userSession');
             const userId = user.data.userId;
 
-            let body = JSON.stringify({
-                "authorId": userId,
-                "dateTimeApp": "2025-07-24T11:41:30.445Z",
-                "drawTime": "string",
-                "bets": [
-                    {
-                        "drawCategory": "string",
-                        "winCombination": "string",
-                        "amount": 0,
-                        "isRambol": 0
-                    }
-                ]
+            const betsPayload = allBets.map(bet => ({
+                drawCategory: bet.draw,
+                winCombination: bet.combination.slice(1).join(""),
+                amount: Number(bet.amount),
+                isRambol: bet.isRmb ? 1 : 0,
+            }));
+
+            const body = JSON.stringify({
+                authorId: userId,
+                dateTimeApp: new Date().toISOString(),
+                drawTime: timeValue,
+                bets: betsPayload,
             });
 
             const response = await fetch(`${GAMING_DOMAIN}/api/Common/CreateUserBet`, {
@@ -224,13 +230,38 @@ const BetPicker: React.FC = (props) => {
                 },
                 body: body
             });
+            console.log("body", body);
 
             const result = await response.json();
+            console.log("result", result);
 
             if (response.ok && result.status === 1) {
-                console.log(result);
+                console.log("result.data.bets", result.data.bets);
 
-                // setShowReceipt(true);
+                const combinations = result.data.bets.map((bet: any) => {
+                    const prefix = bet.isRambol ? 'R' : 'T';
+                    const label = `${prefix} ${bet.winCombination ?? '---'}`;
+                    return {
+                        label,
+                        amount: bet.amount,
+                        draw: bet.drawCategory,
+                        win: bet.winningAmount ?? 0,
+                    };
+                });
+
+                setReceiptData({
+                    drawTime: result.data.drawTime,
+                    betTime: result.data.dateTimeServer,
+                    combinations,
+                    total: result.data.totalAmount,
+                    reference: result.data.transCode,
+                });
+
+                await fetchUserLoad();
+                setShowReceipt(true);
+                setShowBetsModal(false);
+
+                handleClear();
             } else {
                 setModalMessage(result.message);
                 setIsSuccess(false);
@@ -243,22 +274,47 @@ const BetPicker: React.FC = (props) => {
         }
     };
 
-    const [showReceipt, setShowReceipt] = useState(false);
-    const receiptData = {
-        drawTime: '9PM',
-        betTime: '25-07-05 17:19',
-        combinations: [
-            { label: 'T 842', amount: 6, win: 3600 },
-            { label: 'R 842', amount: 6, win: 600 },
-        ],
-        total: 12,
-        reference: '070525-915us7nrrf4',
-    };
-
     const inputRefs = useRef<Array<TextInput | null>>([]);
     const targetRef = useRef<TextInput>(null);
     const rambolRef = useRef<TextInput>(null);
     const [showBetsModal, setShowBetsModal] = useState(false);
+    const [amount, setAmount] = useState(0);
+    const pay = useMemo(() => {
+        return allBets.reduce((sum, bet) => sum + Number(bet.amount), 0);
+    }, [allBets]);
+
+    const fetchUserLoad = async () => {
+        try {
+            const user = await getSession('userSession');
+            const userId = user.data.userId;
+
+            const response = await fetch(`${GAMING_DOMAIN}/api/LoadManagement/GetUserLoad?authorId=${userId}`);
+            const result = await response.json();
+
+            if (response.ok) {
+                const fetchedAmount = result.data?.amount || 0;
+                setAmount(fetchedAmount);
+            }
+        } catch (error) {
+            setModalMessage('Something went wrong. Please try again later.');
+            setIsSuccess(false);
+            setModalVisible(true);
+        }
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            let isActive = true;
+
+            (async () => {
+                if (isActive) await fetchUserLoad();
+            })();
+
+            return () => {
+                isActive = false;
+            };
+        }, [])
+    );
 
     useEffect(() => {
         setTimeout(() => {
@@ -301,7 +357,7 @@ const BetPicker: React.FC = (props) => {
                     renderItem={renderGridRow}
                     keyExtractor={(_, index) => `row-${index}`}
                     contentContainerStyle={{
-                        paddingBottom: 70,
+                        paddingBottom: 10,
                         ...(Platform.OS === 'web' && { flexGrow: 1 }),
                     }}
                     keyboardShouldPersistTaps="handled"
@@ -375,7 +431,7 @@ const BetPicker: React.FC = (props) => {
             );
         } else if (item === "controls") {
             return (
-                <View>
+                <View style={{ marginTop: 15 }}>
                     <View style={[GlobalStyleSheet.row]}>
                         <View style={[GlobalStyleSheet.col50]}>
                             <StepperInput
@@ -479,74 +535,29 @@ const BetPicker: React.FC = (props) => {
                         </View>
 
                     </View>
-                    <View
-                        style={{
-                            ...GlobalStyleSheet.card,
-                            backgroundColor: colors.card,
-                            marginTop: 20,
-                            ...GlobalStyleSheet.shadow,
-                        }}
+
+                    <TouchableOpacity
+                        style={[
+                            styles.iconButton,
+                            {
+                                backgroundColor: COLORS.primary,
+                                opacity: allBets.length > 0 ? 1 : 0.5,
+                                marginTop: 10
+                            },
+                        ]}
+                        onPress={() => handlePrint()}
+                        disabled={allBets.length === 0}
                     >
-                        <View
-                            style={[
-                                GlobalStyleSheet.container,
-                                {
-                                    padding: 0,
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    paddingHorizontal: 0,
-                                    paddingVertical: 0,
-                                    marginBottom: 12,
-                                },
-                            ]}
-                        >
-                            <View style={[styles.cardIco, {borderWidth: 1, borderColor: colors.border}]}>
-                                <Text style={styles.cardText}>{allBets.length}</Text>
-                            </View>
-
-                            <Text
-                                style={{
-                                    ...FONTS.h6,
-                                    color: COLORS.text,
-                                    marginTop: 5,
-                                    marginLeft: 10,
-                                }}
-                            >{`Bet${allBets.length === 1 ? '' : 's'}`}</Text>
-                            <View style={{flexDirection: 'row', alignItems: 'center', marginLeft: 'auto'}}>
-                                <TouchableOpacity
-                                    onPress={() => setShowBetsModal(true)}
-                                    style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 'auto' }}
-                                >
-                                    <Text style={[styles.cardText, { fontSize: 13, fontWeight: 300, marginRight: 10 }]}>View All</Text>
-                                    <FeatherIcon size={16} color={COLORS.white} name='maximize-2' />
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-
-                        <View  style={{marginTop:0, marginVertical: 15, borderTopWidth: 1}}></View>
-
-                        <TouchableOpacity
-                            style={[
-                                styles.iconButton,
-                                {
-                                    backgroundColor: COLORS.primary,
-                                    opacity: allBets.length > 0 ? 1 : 0.5,
-                                },
-                            ]}
-                            onPress={() => handlePrint()}
-                            disabled={allBets.length === 0}
-                        >
-                            <Text style={styles.buttonText}>Print</Text>
-                            <FeatherIcon name="send" size={16} color={COLORS.title} style={styles.icon} />
-                        </TouchableOpacity>
-                    </View>
+                        <Text style={styles.buttonText}>Print</Text>
+                        <FeatherIcon name="send" size={16} color={COLORS.title} style={styles.icon} />
+                    </TouchableOpacity>
 
                     <BetsModal
                         visible={showBetsModal}
                         onClose={() => setShowBetsModal(false)}
                         data={allBets}
                         navigate={props.navigation.navigate}
+                        onPrint={handlePrint}
                     />
 
                     <ReceiptModal
@@ -599,7 +610,17 @@ const BetPicker: React.FC = (props) => {
     };
 
     return (
-        <View style={[styles.container, {backgroundColor: colors.background}]}>
+        <View style={[GlobalStyleSheet.container, {
+            backgroundColor: colors.background,
+            flex: 1,
+            padding: 20,
+            ...(Platform.OS === 'web' && {
+                height: '100vh',
+                overflowY: 'auto',
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+            }),
+        }]}>
             <View
                 style={{
                     backgroundColor: colors.card,
@@ -615,7 +636,7 @@ const BetPicker: React.FC = (props) => {
                     marginBottom: 10,
                 }}
             >
-                <HeaderBet/>
+                <HeaderBet amount={amount} pay={pay} betCount={allBets.length} onPressViewAll={() => setShowBetsModal(true)} />
             </View>
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -623,7 +644,7 @@ const BetPicker: React.FC = (props) => {
             >
                 <FlatList
                     ref={flatListRef}
-                    data={["grid", "selectedNumbers", "controls"]}
+                    data={["selectedNumbers", "grid", "controls"]}
                     renderItem={({item}) => renderContent({item})}
                     keyExtractor={(_, index) => `row-${index}`}
                     contentContainerStyle={{paddingBottom: 70}}
@@ -655,8 +676,8 @@ const styles = StyleSheet.create({
         marginVertical: 2
     },
     gridCell: {
-        width: 35,
-        height: 35,
+        width: 30,
+        height: 30,
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: COLORS.dark,
@@ -670,14 +691,13 @@ const styles = StyleSheet.create({
     },
     selectedNumbers: {
         alignItems: "center",
-        marginBottom: 15,
+        marginBottom: 5,
     },
     sectionTitle: {
         color: COLORS.dark,
         textAlign: "center",
         fontSize: 13,
-        marginTop: 10,
-        marginBottom: 15,
+        marginBottom: 10,
     },
     numberDisplay: {
         flexDirection: "row",
@@ -702,7 +722,7 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         textAlign: "center",
         marginTop: -27,
-        paddingBottom: 15,
+        paddingBottom: 10,
     },
     gridCellDisabled: {
         opacity: 0.5,
@@ -733,7 +753,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15,
         flexBasis: 140,
         flexShrink: 2,
-
     },
     tableItemHead: {
         ...FONTS.font,
@@ -773,12 +792,11 @@ const styles = StyleSheet.create({
         fontSize: 27,
         color: COLORS.light,
     },
-    underscore: {
-        fontSize: 27,
-        fontWeight: 'bold',
-        marginTop: -20,
-        color: COLORS.text,
-        lineHeight: 27,
+    modalOverlay: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
 });
 

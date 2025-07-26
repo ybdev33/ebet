@@ -102,7 +102,6 @@ const StepperInput = forwardRef<TextInput, StepperInputProps>(
 
 const styles = StyleSheet.create({
     container: {
-        width: 180,
         flexDirection: "row",
         alignItems: "center",
         backgroundColor: COLORS.darkBorder,

@@ -72,7 +72,7 @@ const Users: React.FC = () => {
             const userId = userSession.data.userId;
 
             const response = await fetch(
-                `${GAMING_DOMAIN}/api/ApplicationUsers/GetUserLoad?userId=${userId}`,
+                `${GAMING_DOMAIN}/api/LoadManagement/GetUserLoad?authorId=${userId}`,
                 {
                     method: 'GET',
                     headers: {
