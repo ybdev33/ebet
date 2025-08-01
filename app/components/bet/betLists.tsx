@@ -16,12 +16,13 @@ class BetLists extends React.Component {
         rbSheet:'',
     }
 
-    cleanFromScreen(id) {
-        const data = this.state.data.filter(item => {
-            return item.id !== id;
-        });
-        this.setState({ data });
-    }
+    cleanFromScreen = (idToRemove) => {
+        const newData = this.state.data.filter(item => item.id !== idToRemove);
+        this.setState({ data: newData });
+        if (this.props.onDelete) {
+            this.props.onDelete(idToRemove);
+        }
+    };
 
 
     renderItems() {

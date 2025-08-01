@@ -22,6 +22,13 @@ class BetList extends React.Component {
         this.swipeRef = React.createRef();
     }
 
+    handleDelete = () => {
+        const { id, cleanFromScreen } = this.props;
+        if (cleanFromScreen && typeof cleanFromScreen === 'function') {
+            cleanFromScreen(id);
+        }
+    };
+
     renderRightActions = (progress, dragX) => {
         const opacity = dragX.interpolate({
             inputRange: [-100, 0],
@@ -34,7 +41,7 @@ class BetList extends React.Component {
                     start={{x: 0, y: 0}} end={{x: 1, y: 0}}
                     colors={['#c94953', '#ba004d']}
                 >
-                    <TouchableOpacity style={styles.swipeBtn}>
+                    <TouchableOpacity style={styles.swipeBtn} onPress={this.handleDelete}>
                         <Image style={styles.swipeIcon} source={ICONS.delete}/>
                         <Text style={styles.textStyle} numberOfLines={1}>Remove</Text>
                     </TouchableOpacity>

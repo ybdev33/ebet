@@ -274,6 +274,10 @@ const BetPicker: React.FC = (props) => {
         }
     };
 
+    const handleDeleteBet = (idToRemove: number) => {
+        setAllBets(prev => prev.filter(item => item.id !== idToRemove));
+    };
+
     const inputRefs = useRef<Array<TextInput | null>>([]);
     const targetRef = useRef<TextInput>(null);
     const rambolRef = useRef<TextInput>(null);
@@ -558,6 +562,7 @@ const BetPicker: React.FC = (props) => {
                         data={allBets}
                         navigate={props.navigation.navigate}
                         onPrint={handlePrint}
+                        onDelete={handleDeleteBet}
                     />
 
                     <ReceiptModal

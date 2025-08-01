@@ -28,9 +28,10 @@ interface BetsModalProps {
     data: Bet[];
     navigate: (destination: string) => void;
     onPrint: () => void;
+    onDelete: () => void;
 }
 
-const BetsModal: React.FC<BetsModalProps> = ({ visible, onClose, data, navigate, onPrint }) => {
+const BetsModal: React.FC<BetsModalProps> = ({ visible, onClose, data, navigate, onPrint, onDelete }) => {
     const theme = useTheme();
     const { colors } = theme;
 
@@ -112,6 +113,7 @@ const BetsModal: React.FC<BetsModalProps> = ({ visible, onClose, data, navigate,
                                         theme={theme}
                                         destination="Trade"
                                         navigate={navigate}
+                                        onDelete={onDelete}
                                     />
 
                                     <View  style={{marginTop:0, marginVertical: 15, borderTopWidth: 1}}></View>
