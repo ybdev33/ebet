@@ -100,7 +100,7 @@ const Home = () => {
     );
 
     return(
-        <View style={[{backgroundColor:colors.background,flex:1},Platform.OS === 'web' && GlobalStyleSheet.container,{paddingBottom:70}]}>
+        <View style={[{backgroundColor:colors.background,flex:1},Platform.OS === 'web' && GlobalStyleSheet.container,{padding:0}]}>
             <ScrollView showsHorizontalScrollIndicator={false}>
                 <BalanceChart amount={amount}/>
                 <Animatable.View
@@ -141,18 +141,5 @@ const Home = () => {
         </View>
     )
 }
-
-const styles = StyleSheet.create({
-    coinList:{
-        flexDirection:'row',
-        alignItems:'center',
-        justifyContent:'space-between',
-        borderRadius:12,
-        paddingHorizontal:6,
-        paddingVertical:6,
-        marginVertical:4,
-        marginHorizontal:15,
-    }
-})
 
 export default Home;

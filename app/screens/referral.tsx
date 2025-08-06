@@ -47,7 +47,7 @@ const Referral: React.FC = () => {
                 });
 
                 const result = await response.json();
-                console.log("result", result);
+
                 if (response.ok) {
                     setReferralData(result.data);
                 }

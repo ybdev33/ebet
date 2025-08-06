@@ -27,14 +27,8 @@ const DrawResult: React.FC<DrawResultProps> = ({dashData}) => {
     const { colors } = useTheme();
     const theme = useTheme();
 
-    useEffect(() => {
-        setTimeout(() => {
-            console.log("dashData:", dashData);
-        }, 1000);
-    }, [dashData]);
-
     return (
-        <View>
+        <View style={{paddingBottom: 70}}>
             <Text style={{...FONTS.h6, color:colors.title, padding: 15}}>Draw Result</Text>
 
             <View style={{paddingHorizontal: 10}}>
