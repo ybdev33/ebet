@@ -8,7 +8,7 @@ import {
     TextInput,
     TextStyle,
     ViewStyle,
-    ImageStyle, Modal,
+    ImageStyle, Modal, Platform,
 } from 'react-native';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import { FONTS, SIZES, COLORS, IMAGES, ICONS } from '../../constants/theme';
@@ -191,203 +191,216 @@ const HistoryLoad: React.FC = () => {
     }, [accordionData]);
 
     return (
-        <View style={{ flex: 1, backgroundColor: colors.background }}>
-            <HeaderBar
-                leftIcon={'back'}
-                title={"History"}
-            />
 
-            <ScrollView
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{
-                    marginTop: 20,
-                    paddingBottom:100,
-                }}
-            >
-                <RBSheet
-                    ref={refRBSheet}
-                    closeOnDragDown={true}
-                    height={180}
-                    openDuration={100}
-                    customStyles={{
-                        container: {
-                            backgroundColor: colors.background,
-                            borderTopLeftRadius: 15,
-                            borderTopRightRadius: 15,
-                        },
-                        draggableIcon: {
-                            width: 90,
-                            backgroundColor: colors.borderColor,
-                        },
+        <View style={[GlobalStyleSheet.container, {
+            backgroundColor: colors.background,
+            flex: 1,
+            padding: 20,
+            ...(Platform.OS === 'web' && {
+                height: '100vh',
+                overflowY: 'auto',
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+            }),
+        }]}>
+            <View style={{ flex: 1, backgroundColor: colors.background }}>
+                <HeaderBar
+                    leftIcon={'back'}
+                    title={"History"}
+                />
+
+                <ScrollView
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{
+                        marginTop: 20,
+                        paddingBottom:100,
                     }}
                 >
-                    {['csv', 'xlsx', 'pdf'].map((type, index) => (
-                        <Ripple
-                            key={index}
-                            onPress={() => refRBSheet.current?.close()}
-                            style={{
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                paddingHorizontal: 20,
-                                paddingVertical: 10,
-                                borderBottomWidth: index < 2 ? 0.5 : 0,
-                                borderBottomColor: colors.borderColor,
-                            }}
-                        >
-                            <Image
-                                style={{
-                                    height: 18,
-                                    width: 18,
-                                    marginRight: 10,
-                                    tintColor: colors.text,
-                                }}
-                                source={ICONS[type as keyof typeof ICONS]}
-                            />
-                            <Text style={{ ...FONTS.font, color: colors.title }}>{type.toUpperCase()}</Text>
-                        </Ripple>
-                    ))}
-                </RBSheet>
-
-                <View style={{ marginBottom: 5, flexDirection: 'row', marginHorizontal: 10 }}>
-                    <View style={{ flex: 1, marginRight: 10 }}>
-                        <View
-                            style={{
-                                height: 48,
-                                borderWidth: 1,
-                                borderColor: colors.borderColor,
-                                backgroundColor: colors.card,
-                                borderRadius: SIZES.radius,
-                                flexDirection: 'row',
-                                ...GlobalStyleSheet.shadow,
-                            }}
-                        >
-                            <FeatherIcon
-                                style={{ position: 'absolute', left: 12, top: 12 }}
-                                name="calendar"
-                                size={20}
-                                color={COLORS.primary}
-                            />
-                            <Ripple onPress={() => setOpen(true)}>
-                                <TextInput
-                                    style={{
-                                        ...FONTS.font,
-                                        color: colors.title,
-                                        paddingLeft: 45,
-                                        paddingRight: 6,
-                                        height: 46,
-                                    }}
-                                    value={date}
-                                    editable={false}
-                                />
-                            </Ripple>
-                            <Text style={{ alignSelf: 'center', ...FONTS.font, color: colors.text }}>-</Text>
-                            <Ripple onPress={() => setOpen02(true)}>
-                                <TextInput
-                                    style={{
-                                        ...FONTS.font,
-                                        color: colors.title,
-                                        paddingLeft: 6,
-                                        height: 46,
-                                    }}
-                                    value={date02}
-                                    editable={false}
-                                />
-                            </Ripple>
-                        </View>
-                    </View>
-
-                    <Ripple
-                        onPress={() => refRBSheet.current?.open()}
-                        style={{
-                            height: 48,
-                            width: 48,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            borderRadius: SIZES.radius,
-                            backgroundColor: COLORS.primary,
+                    <RBSheet
+                        ref={refRBSheet}
+                        closeOnDragDown={true}
+                        height={180}
+                        openDuration={100}
+                        customStyles={{
+                            container: {
+                                backgroundColor: colors.background,
+                                borderTopLeftRadius: 15,
+                                borderTopRightRadius: 15,
+                            },
+                            draggableIcon: {
+                                width: 90,
+                                backgroundColor: colors.borderColor,
+                            },
                         }}
                     >
-                        <FeatherIcon size={20} color={COLORS.white} name="download" />
-                    </Ripple>
-                </View>
+                        {['csv', 'xlsx', 'pdf'].map((type, index) => (
+                            <Ripple
+                                key={index}
+                                onPress={() => refRBSheet.current?.close()}
+                                style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    paddingHorizontal: 20,
+                                    paddingVertical: 10,
+                                    borderBottomWidth: index < 2 ? 0.5 : 0,
+                                    borderBottomColor: colors.borderColor,
+                                }}
+                            >
+                                <Image
+                                    style={{
+                                        height: 18,
+                                        width: 18,
+                                        marginRight: 10,
+                                        tintColor: colors.text,
+                                    }}
+                                    source={ICONS[type as keyof typeof ICONS]}
+                                />
+                                <Text style={{ ...FONTS.font, color: colors.title }}>{type.toUpperCase()}</Text>
+                            </Ripple>
+                        ))}
+                    </RBSheet>
 
-                <Accordion
-                    containerStyle={{ paddingTop: 15 }}
-                    sectionContainerStyle={[styles.accordionItem, { backgroundColor: colors.card }]}
-                    activeSections={activeSections}
-                    sections={accordionData}
-                    touchableComponent={View}
-                    expandMultiple={true}
-                    renderHeader={(item, _, isActive) => (
-                        <Ripple
-                            onPress={() => {
-                                if (item.transactionDescription.includes("Bet")) {
-                                    handleHistoryBet(item.referenceId);
-                                }
-                            }}
-                            style={styles.accordionHeader}
-                        >
-                            <View style={{
-                                height: 35,
-                                width: 35,
-                                marginRight: 10,
-                                borderRadius: SIZES.radius,
-                                backgroundColor: colors.background
-                            }}>
-                                {item.coin}
-                            </View>
-                            <View>
-                                <Text style={{ ...FONTS.font, color: colors.title, marginBottom: 5 }}>{item.transactionDescription}</Text>
-                                <Text style={{ ...FONTS.fontXs, color: colors.text }}>{item.date}</Text>
-                            </View>
+                    <View style={{ marginBottom: 5, flexDirection: 'row', marginHorizontal: 10 }}>
+                        <View style={{ flex: 1, marginRight: 10 }}>
                             <View
                                 style={{
-                                    alignItems:'center',
-                                    justifyContent:'center',
-                                    marginLeft:'auto',
-                                }}>
-                                <Text style={{ ...FONTS.font, color: item.amount.startsWith('+') ? COLORS.primary : COLORS.danger, marginBottom: 5 }}>{item.amount}</Text>
-                            </View>
-
-                        </Ripple>
-                    )}
-                    renderContent={(item) => (
-                        <View style={[styles.accordionBody, { borderColor: colors.borderColor }]}>
-                            <View>
-                                <Text style={{ ...FONTS.fontXs, color: COLORS.primary, marginBottom: 5 }}>Reference ID</Text>
-                                <Text style={{ ...FONTS.fontXs, color: colors.text }}>{item.referenceId}</Text>
+                                    height: 48,
+                                    borderWidth: 1,
+                                    borderColor: colors.borderColor,
+                                    backgroundColor: colors.card,
+                                    borderRadius: SIZES.radius,
+                                    flexDirection: 'row',
+                                    ...GlobalStyleSheet.shadow,
+                                }}
+                            >
+                                <FeatherIcon
+                                    style={{ position: 'absolute', left: 12, top: 12 }}
+                                    name="calendar"
+                                    size={20}
+                                    color={COLORS.primary}
+                                />
+                                <Ripple onPress={() => setOpen(true)}>
+                                    <TextInput
+                                        style={{
+                                            ...FONTS.font,
+                                            color: colors.title,
+                                            paddingLeft: 45,
+                                            paddingRight: 6,
+                                            height: 46,
+                                        }}
+                                        value={date}
+                                        editable={false}
+                                    />
+                                </Ripple>
+                                <Text style={{ alignSelf: 'center', ...FONTS.font, color: colors.text }}>-</Text>
+                                <Ripple onPress={() => setOpen02(true)}>
+                                    <TextInput
+                                        style={{
+                                            ...FONTS.font,
+                                            color: colors.title,
+                                            paddingLeft: 6,
+                                            height: 46,
+                                        }}
+                                        value={date02}
+                                        editable={false}
+                                    />
+                                </Ripple>
                             </View>
                         </View>
-                    )}
-                    duration={300}
-                    onChange={() => {}}
-                />
-            </ScrollView>
 
-            <Modal
-                animationType="fade"
-                transparent={true}
-                visible={modalVisible}
-                onRequestClose={() => setModalVisible(false)}
-            >
-                <View style={styles.modalOverlay}>
-                    <SuccessModal
-                        message={modalMessage}
-                        isSuccess={isSuccess}
-                        onClose={() => setModalVisible(false)}
+                        <Ripple
+                            onPress={() => refRBSheet.current?.open()}
+                            style={{
+                                height: 48,
+                                width: 48,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderRadius: SIZES.radius,
+                                backgroundColor: COLORS.primary,
+                            }}
+                        >
+                            <FeatherIcon size={20} color={COLORS.white} name="download" />
+                        </Ripple>
+                    </View>
+
+                    <Accordion
+                        containerStyle={{ paddingTop: 15 }}
+                        sectionContainerStyle={[styles.accordionItem, { backgroundColor: colors.card }]}
+                        activeSections={activeSections}
+                        sections={accordionData}
+                        touchableComponent={View}
+                        expandMultiple={true}
+                        renderHeader={(item, _, isActive) => (
+                            <Ripple
+                                onPress={() => {
+                                    if (item.transactionDescription.includes("Bet")) {
+                                        handleHistoryBet(item.referenceId);
+                                    }
+                                }}
+                                style={styles.accordionHeader}
+                            >
+                                <View style={{
+                                    height: 35,
+                                    width: 35,
+                                    marginRight: 10,
+                                    borderRadius: SIZES.radius,
+                                    backgroundColor: colors.background
+                                }}>
+                                    {item.coin}
+                                </View>
+                                <View>
+                                    <Text style={{ ...FONTS.font, color: colors.title, marginBottom: 5 }}>{item.transactionDescription}</Text>
+                                    <Text style={{ ...FONTS.fontXs, color: colors.text }}>{item.date}</Text>
+                                </View>
+                                <View
+                                    style={{
+                                        alignItems:'center',
+                                        justifyContent:'center',
+                                        marginLeft:'auto',
+                                    }}>
+                                    <Text style={{ ...FONTS.font, color: item.amount.startsWith('+') ? COLORS.primary : COLORS.danger, marginBottom: 5 }}>{item.amount}</Text>
+                                </View>
+
+                            </Ripple>
+                        )}
+                        renderContent={(item) => (
+                            <View style={[styles.accordionBody, { borderColor: colors.borderColor }]}>
+                                <View>
+                                    <Text style={{ ...FONTS.fontXs, color: COLORS.primary, marginBottom: 5 }}>Reference ID</Text>
+                                    <Text style={{ ...FONTS.fontXs, color: colors.text }}>{item.referenceId}</Text>
+                                </View>
+                            </View>
+                        )}
+                        duration={300}
+                        onChange={() => {}}
                     />
-                </View>
-            </Modal>
+                </ScrollView>
 
-            <ReceiptModal
-                visible={showReceipt}
-                onClose={() => setShowReceipt(false)}
-                drawTime={receiptData.drawTime}
-                betTime={receiptData.betTime}
-                combinations={receiptData.combinations}
-                total={receiptData.total}
-                reference={receiptData.reference}
-            />
+                <Modal
+                    animationType="fade"
+                    transparent={true}
+                    visible={modalVisible}
+                    onRequestClose={() => setModalVisible(false)}
+                >
+                    <View style={styles.modalOverlay}>
+                        <SuccessModal
+                            message={modalMessage}
+                            isSuccess={isSuccess}
+                            onClose={() => setModalVisible(false)}
+                        />
+                    </View>
+                </Modal>
+
+                <ReceiptModal
+                    visible={showReceipt}
+                    onClose={() => setShowReceipt(false)}
+                    drawTime={receiptData.drawTime}
+                    betTime={receiptData.betTime}
+                    combinations={receiptData.combinations}
+                    total={receiptData.total}
+                    reference={receiptData.reference}
+                />
+            </View>
         </View>
     );
 };

@@ -160,6 +160,9 @@ export const ICONS = {
 	mail : require('../assets/images/icons/mail.png'),
 	thumbsUp : require('../assets/images/icons/thumbs-up.png'),
 	bet : require('../assets/images/icons/bet.png'),
+	pesocom : require('../assets/images/icons/pesocom.png'),
+	cancelled : require('../assets/images/icons/cancelled.png'),
+	peso : require('../assets/images/icons/peso.png'),
 }
 
 const appTheme = {COLORS, SIZES, FONTS, IMAGES, ICONS}

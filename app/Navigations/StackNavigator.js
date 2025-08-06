@@ -46,7 +46,6 @@ import Toggles from "../screens/Components/Toggles";
 import {useTheme} from "@react-navigation/native";
 import BetPicker from "../screens/betPicker";
 import Account from '../screens/Account';
-import MarketNewListing from '../components/markets/marketNewListing';
 import Users from '../screens/users';
 
 const MyStatusBar = ({...props}) => (
@@ -76,48 +75,12 @@ const StackNavigator = () => {
                 }}
             >
                 <Stack.Screen name="signin" component={SignIn}/>
-                <Stack.Screen name="register" component={SignUp}/>
                 <Stack.Screen name="emailverify" component={EmailVerify}/>
-                <Stack.Screen name="changepassword" component={ChangePassword}/>
+                <Stack.Screen name="register" component={SignUp}/>
                 <Stack.Screen name="drawernavigation" component={DrawerNavigation}/>
                 <Stack.Screen name="account" component={Account}/>
-                <Stack.Screen name="verification" component={Verification}/>
-                <Stack.Screen name="knowyourcrypto" component={KnowYourCrypto}/>
-                <Stack.Screen name="settings" component={Settings}/>
                 <Stack.Screen name="history" component={History}/>
-                <Stack.Screen name="helpdesk" component={HelpDesk}/>
-                <Stack.Screen name="messages" component={Messages}/>
-                <Stack.Screen name="paymentMethod" component={PaymentMethod}/>
                 <Stack.Screen name="referral" component={Referral}/>
-                <Stack.Screen name="notifications" component={Notifications}/>
-                <Stack.Screen name="profitloss" component={ProfitLoss}/>
-                <Stack.Screen name="search" component={Search}/>
-                <Stack.Screen name="Components" component={Components}/>
-                <Stack.Screen name="Accordion" component={AccordionScreen}/>
-                <Stack.Screen name="ActionSheet" component={ActionSheet}/>
-                <Stack.Screen name="ActionModals" component={ActionModals}/>
-                <Stack.Screen name="Buttons" component={Buttons}/>
-                <Stack.Screen name="Charts" component={Charts}/>
-                <Stack.Screen name="Chips" component={Chips}/>
-                <Stack.Screen name="CollapseElements" component={CollapseElements}/>
-                <Stack.Screen name="DividerElements" component={DividerElements}/>
-                <Stack.Screen name="FileUploads" component={FileUploads}/>
-                <Stack.Screen name="Headers" component={Headers}/>
-                <Stack.Screen name="Footers" component={Footers}/>
-                <Stack.Screen name="TabStyle1" component={TabStyle1}/>
-                <Stack.Screen name="TabStyle2" component={TabStyle2}/>
-                <Stack.Screen name="TabStyle3" component={TabStyle3}/>
-                <Stack.Screen name="TabStyle4" component={TabStyle4}/>
-                <Stack.Screen name="Inputs" component={Inputs}/>
-                <Stack.Screen name="lists" component={ListScreen}/>
-                <Stack.Screen name="Paginations" component={Paginations}/>
-                <Stack.Screen name="Pricings" component={Pricings}/>
-                <Stack.Screen name="Snackbars" component={Snackbars}/>
-                <Stack.Screen name="Socials" component={Socials}/>
-                <Stack.Screen name="Swipeable" component={SwipeableScreen}/>
-                <Stack.Screen name="Tabs" component={Tabs}/>
-                <Stack.Screen name="Tables" component={Tables}/>
-                <Stack.Screen name="Toggles" component={Toggles}/>
                 <Stack.Screen name="betPicker" component={BetPicker}/>
                 <Stack.Screen name="users" component={Users}/>
             </Stack.Navigator>

@@ -1,14 +1,27 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation, useTheme } from '@react-navigation/native';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import { COLORS, FONTS, ICONS, IMAGES } from '../constants/theme';
 import ThemeBtn from '../components/ThemeBtn';
+import {getSession} from "@/app/helpers/sessionHelper";
 
-function Sidebar() {
+function Sidebar({ navigation }) {
 
-    const navigation = useNavigation();
+    // const navigation = useNavigation();
     const {colors} = useTheme();
+    const [userSession, setUserSession] = useState(null);
+
+    useEffect(() => {
+        (async () => {
+            try {
+                const user = await getSession('userSession');
+                setUserSession(user);
+            } catch (error) {
+                console.error('Failed to load user session', error);
+            }
+        })();
+    }, []);
 
     return (
         <View
@@ -30,18 +43,12 @@ function Sidebar() {
                         flexDirection:'row',
                         justifyContent:'space-between',
                         width:'100%',
+                        marginBottom: 10
                     }}
                 >
-                    <View
-                        style={{
-                            marginBottom:15,
-                            padding:4,
-                            borderRadius:70,
-                            backgroundColor:'rgba(255,255,255,.1)',
-                        }}
-                    >
+                    <View style={{marginRight:18,borderWidth:3,borderRadius:80,borderColor:'rgba(255,255,255,.1)', padding: 10}}>
                         <Image
-                            source={IMAGES.pic1}
+                            source={IMAGES.logoIcon}
                             style={{
                                 height:70,
                                 width:70,
@@ -53,13 +60,25 @@ function Sidebar() {
                         <ThemeBtn/>
                     </View>
                 </View>
-                <Text style={{...FONTS.h6,color:COLORS.white,marginBottom:3}}>Stas Bondarenko</Text>
-                <Text style={{...FONTS.fontSm,color:COLORS.white,opacity:.7}}>example@gmail.com</Text>
+
+                <View>
+                    <Text style={{...FONTS.h6,color:COLORS.white,marginBottom:7}}>{userSession?.data?.completeName || "Loading..."}</Text>
+                    <View
+                        style={{
+                            flexDirection:'row',
+                            alignItems:'center',
+                        }}
+                    >
+                        <FeatherIcon style={{marginRight:6}} color={colors.text} size={14} name='phone' />
+                        <Text style={{...FONTS.fontSm,color:COLORS.white,opacity:.6}}>+63 {userSession?.data?.mobileNumber?.replace(/^0+/, '') || "N/A"}</Text>
+                    </View>
+                </View>
+
             </View>
             <View style={{flex:1,paddingVertical:15}}>
                 <TouchableOpacity
                     style={styles.navItem}
-                    onPress={() => navigation.navigate('Home')}
+                    onPress={() => navigation.navigate('BottomNavigation', { screen: 'Home' })}
                 >
                     <Image
                         source={ICONS.home}
@@ -75,27 +94,10 @@ function Sidebar() {
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={styles.navItem}
-                    onPress={() => navigation.navigate('Components')}
+                    onPress={() => navigation.navigate('BottomNavigation', { screen: 'Bet' })}
                 >
                     <Image
-                        source={ICONS.grid}
-                        style={{
-                            height:20,
-                            width:20,
-                            tintColor:colors.text,
-                            left:-1,
-                            marginRight:10,
-                        }}
-                    />
-                    <Text style={{...FONTS.font,...FONTS.fontMedium,color:colors.title,flex:1}}>Components</Text>
-                    <FeatherIcon size={16} color={colors.text} name={'chevron-right'}/>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={styles.navItem}
-                    onPress={() => navigation.navigate('settings')}
-                >
-                    <Image
-                        source={ICONS.setting}
+                        source={ICONS.peso}
                         style={{
                             height:18,
                             width:18,
@@ -103,7 +105,23 @@ function Sidebar() {
                             marginRight:12,
                         }}
                     />
-                    <Text style={{...FONTS.font,...FONTS.fontMedium,color:colors.title,flex:1}}>Settings</Text>
+                    <Text style={{...FONTS.font,...FONTS.fontMedium,color:colors.title,flex:1}}>Bet</Text>
+                    <FeatherIcon size={16} color={colors.text} name={'chevron-right'}/>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.navItem}
+                    onPress={() => navigation.navigate('account')}
+                >
+                    <Image
+                        source={ICONS.verified}
+                        style={{
+                            height:18,
+                            width:18,
+                            tintColor:colors.text,
+                            marginRight:12,
+                        }}
+                    />
+                    <Text style={{...FONTS.font,...FONTS.fontMedium,color:colors.title,flex:1}}>Account</Text>
                     <FeatherIcon size={16} color={colors.text} name={'chevron-right'}/>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -129,8 +147,7 @@ function Sidebar() {
                     paddingVertical:20,
                 }}
             >
-                <Text style={{...FONTS.h6,color:colors.title,marginBottom:5}}>Crypto - Mobile Template</Text>
-                <Text style={{...FONTS.font,color:colors.text}}>App Version 1.0</Text>
+                <Text style={{...FONTS.h6,color:colors.title,marginBottom:5}}>E-Bet</Text>
             </View>
         </View>
     );

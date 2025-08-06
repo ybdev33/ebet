@@ -1,4 +1,4 @@
-import React , {useRef, useEffect} from 'react';
+import React , {useRef, useEffect, useMemo} from 'react';
 import {
     View,
     Text,
@@ -8,62 +8,67 @@ import {
     Animated,
 } from 'react-native';
 import { useNavigation, useTheme } from '@react-navigation/native';
-import {
-    LineChart,
-} from "react-native-chart-kit";
+import { LineChart } from "react-native-chart-kit";
 import Ripple from 'react-native-material-ripple';
 
 import { FONTS, SIZES, COLORS, ICONS } from '../constants/theme';
 import { GlobalStyleSheet } from '../constants/styleSheet';
 
-const cardData = [
-    {
-        id : "1",
-        pic: ICONS.wallet2,
-        title: "Total Balance",
-        balance: "₱ 5,770.90",
-        amount: "0.11857418",
-        status: "total",
-        data : [25,30,35,60,40,70,50,60,40,70,65,75,60,70,45,70,50],
-        navigate: 'Wallet'
-    },
-    {
-        id : "2",
-        pic: ICONS.chart,
-        title: "Profit & Loss",
-        balance: "$21,560.90",
-        amount: "+4.98%",
-        status: "profit&loss",
-        data : [25,30,35,60,40,70,50,60,40,70,65,75,60,70,45,70,50],
-        navigate: 'profitloss'
-    },
-    {
-        id : "3",
-        pic: ICONS.trophy,
-        title: "Rewards Earned",
-        balance: "21,560.57",
-        status: "reward",
-        data : [25,30,35,60,40,70,50,60,40,70,65,75,60,70,45,70,50],
-        navigate: 'rewards'
-    }
-]
-
-
-const BalanceWidgets = () => {
+const BalanceWidgets = ({dashData}) => {
 
     const {colors} = useTheme();
     const navigation = useNavigation();
     const chartWidth = useRef(new Animated.Value(0)).current;
-    
-    useEffect(() => { 
-        setTimeout(() => {  
+
+    useEffect(() => {
+        setTimeout(() => {
             Animated.timing(chartWidth, {
                 toValue: 190,
                 duration: 7000,
                 useNativeDriver:false,
             }).start();
         }, 1000);
-    });
+
+    }, [dashData]);
+
+    const cardData = useMemo(() => {
+        if (!dashData || Object.keys(dashData).length === 0) return [];
+
+        return [
+            {
+                id: "1",
+                pic: ICONS.badge,
+                title: "Total Bets",
+                balance: `${dashData.totalBets}`,
+                status: "total",
+                navigate: 'Wallet'
+            },
+            {
+                id: "2",
+                pic: ICONS.trophy,
+                title: "Total Hits",
+                balance: `${dashData.totalHits}`,
+                status: "hits",
+                navigate: 'hits'
+            },
+            {
+                id: "3",
+                pic: ICONS.pesocom,
+                title: "Total Commission",
+                balance: `${dashData.totalCommision}`,
+                status: "commission",
+                navigate: 'commissions'
+            },
+            {
+                id: "4",
+                pic: ICONS.cancelled,
+                title: "Total Cancelled",
+                balance: `${dashData.totalCancelled}`,
+                status: "cancelled",
+                navigate: 'cancelledBets'
+            },
+        ];
+    }, [dashData]);
 
     return(
         <FlatList
@@ -75,8 +80,7 @@ const BalanceWidgets = () => {
             showsHorizontalScrollIndicator={false}
             data={cardData}
             renderItem={({ item }) => (
-                <Ripple 
-                    onPress={() => navigation.navigate(item.navigate)}
+                <Ripple
                     style={[{
                         width:140,
                         borderRadius:12,
@@ -96,8 +100,10 @@ const BalanceWidgets = () => {
                                 width:18,
                                 height:18,
                                 tintColor:item.status === "total" ? COLORS.warning :
-                                        item.status === "profit&loss" ? COLORS.success:
-                                        item.status === "reward" ? COLORS.info : COLORS.primary,
+                                    item.status === "cancelled" ? COLORS.danger :
+                                        item.status === "commission" ? COLORS.info :
+                                            item.status === "hits" ? COLORS.success :
+                                                COLORS.primary,
                             }} source={item.pic}/>
                         </View>
                         <Text style={{...FONTS.fontXs,marginBottom:6,color:colors.text}}>{item.title}</Text>
@@ -108,50 +114,6 @@ const BalanceWidgets = () => {
                                 color:colors.title,
                             }}
                         >{item.balance}</Text>
-                        <Animated.View style={{overflow:'hidden',width:chartWidth,marginBottom: 0,marginLeft:-70}}>
-                            
-                            <LineChart
-                                data={{
-                                    datasets: [{
-                                        data: item.data,
-                                        color: (opacity = 1) => item.status === 'total' ? COLORS.warning :
-                                        item.status === 'profit&loss' ? COLORS.success:
-                                        item.status === 'reward' ?  COLORS.info:
-                                        COLORS.primary,
-                                    }]
-                                }}
-                                width={190} // from react-native
-                                height={50}
-                                withHorizontalLabels={false}
-                                transparent={true}
-                                withVerticalLabels={false}
-                                yAxisInterval={1} // optional, defaults to 1
-                                chartConfig={{
-                                    strokeWidth:2,
-                                    fillShadowGradientFrom:
-                                    item.status === 'total' ? COLORS.warning :
-                                    item.status === 'profit&loss' ? COLORS.success:
-                                    item.status === 'reward' ? COLORS.info:
-                                    COLORS.primary,
-                                    fillShadowGradientFromOpacity:.3,
-                                    fillShadowGradientToOpacity:0,
-                                    decimalPlaces: 2, // optional, defaults to 2dp
-                                    color: (opacity = 1) => 'rgb(255,255,255)',
-                                    labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                                    propsForBackgroundLines: {
-                                        strokeWidth: 0
-                                    },
-                                    style: {
-                                        borderRadius: 0,
-                                        paddingLeft: 0,
-                                    },
-                                    propsForDots: {
-                                        r: "0",
-                                        strokeWidth: "2",
-                                    },
-                                }}
-                            />
-                        </Animated.View>
                     </View>
                 </Ripple>
             )}

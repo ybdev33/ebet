@@ -40,21 +40,6 @@ const Profile = ({navigation}) => {
             navigate : "users",
         },
         {
-            icon : ICONS.setting,
-            title : "Settings",
-            navigate : "settings",
-        },
-        {
-            icon : ICONS.history,
-            title : "History",
-            navigate : "history",
-        },
-        {
-            icon : ICONS.wallet,
-            title : "Payment",
-            navigate : "paymentMethod",
-        },
-        {
             icon : ICONS.logout,
             title : "Logout",
             navigate : "signin",
@@ -105,13 +90,13 @@ const Profile = ({navigation}) => {
                             alignItems:'center',
                         }}
                     >
-                        <View style={{marginRight:18,borderWidth:3,borderRadius:80,borderColor:'rgba(255,255,255,.1)'}}>
+                        <View style={{marginRight:18,borderWidth:3,borderRadius:80,borderColor:'rgba(255,255,255,.1)', padding: 10}}>
                             <Image
-                                source={imgUrl ? {uri : imgUrl} : IMAGES.pic1}
+                                source={imgUrl ? {uri : imgUrl} : IMAGES.logoIcon}
                                 style={{
-                                    height:80,
-                                    width:80,
-                                    borderRadius:80,
+                                    height:70,
+                                    width:70,
+                                    borderRadius:70,
                                 }}
                             />
                             <TouchableOpacity

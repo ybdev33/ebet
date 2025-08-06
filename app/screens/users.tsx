@@ -8,7 +8,7 @@ import {
     Animated,
     Image,
     ImageBackground,
-    TouchableOpacity, TextInput,
+    TouchableOpacity, TextInput, Platform,
 } from 'react-native';
 import { COLORS, FONTS, ICONS, IMAGES } from '../constants/theme';
 import HeaderBar from '../layout/header';
@@ -193,262 +193,274 @@ const Users: React.FC = () => {
     }, [topUpModalVisible]);
 
     return (
-        <View style={{ ...styles.container, backgroundColor: colors.background }}>
-            <HeaderBar title="Users" leftIcon="back" />
-            <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                onContentSizeChange={width => setCompleteScrollBarWidth(width)}
-                onLayout={({ nativeEvent: { layout: { width } } }) => setVisibleScrollBarWidth(width)}
-                onScroll={Animated.event(
-                    [{ nativeEvent: { contentOffset: { x: scrollIndicator } } }],
-                    { useNativeDriver: false }
-                )}
-                scrollEventThrottle={16}
-            >
-                <View style={{ marginTop: 20, paddingHorizontal: 15}}>
-                    <View style={[styles.tableHeader, { backgroundColor: colors.card }]}>
-                        <Text style={[styles.tableItemHead, { color: colors.title }]}>Load</Text>
-                        <View style={[styles.iconColumn, {width: 15}]}>
-                            <Text style={{ ...FONTS.fontSm, color: colors.title }}></Text>
-                        </View>
-                        <Text style={[styles.tableItemHead, { color: colors.title }]}>Name</Text>
-                        <Text style={[styles.tableItemHead, { color: colors.title }]}>Username</Text>
-                        <Text style={[styles.tableItemHead, { color: colors.title }]}>Mobile</Text>
-                        <Text style={[styles.tableItemHead, { color: colors.title }]}>Status</Text>
-                        <Text style={[styles.tableItemHead, { color: colors.title }]}>Date Registered</Text>
-                        <View style={[styles.iconColumn]}>
-                            <Text style={{ ...FONTS.fontSm, color: colors.title }}>Action</Text>
-                        </View>
-                    </View>
-
-                    {paginatedUsers.map((user) => (
-                        <View
-                            key={user.userId}
-                            style={{ flexDirection: 'row', height: 40, alignItems: 'center', width: '100%' }}
-                        >
-                            <Text style={[styles.tableItem, { color: COLORS.primary }]}>₱ {user.loadAmount}</Text>
+        <View style={[GlobalStyleSheet.container, {
+            backgroundColor: colors.background,
+            flex: 1,
+            padding: 20,
+            ...(Platform.OS === 'web' && {
+                height: '100vh',
+                overflowY: 'auto',
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+            }),
+        }]}>
+            <View style={{ ...styles.container, backgroundColor: colors.background }}>
+                <HeaderBar title="Users" leftIcon="back" />
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    onContentSizeChange={width => setCompleteScrollBarWidth(width)}
+                    onLayout={({ nativeEvent: { layout: { width } } }) => setVisibleScrollBarWidth(width)}
+                    onScroll={Animated.event(
+                        [{ nativeEvent: { contentOffset: { x: scrollIndicator } } }],
+                        { useNativeDriver: false }
+                    )}
+                    scrollEventThrottle={16}
+                >
+                    <View style={{ marginTop: 20, paddingHorizontal: 15}}>
+                        <View style={[styles.tableHeader, { backgroundColor: colors.card }]}>
+                            <Text style={[styles.tableItemHead, { color: colors.title }]}>Load</Text>
                             <View style={[styles.iconColumn, {width: 15}]}>
-                                <Ripple
-                                    onPress={() => {
-                                        handleTopUpPress();
-                                        setSelectedUser(user);
-                                        setTopUpModalVisible(true);
-                                    }}
-                                    style={[
-                                        styles.paginationButton,
-                                        {
-                                            backgroundColor: COLORS.primary},
-                                    ]}
-                                >
-                                    <Image source={ICONS.trade} style={{ height: 18, width: 18 }} />
-                                </Ripple>
+                                <Text style={{ ...FONTS.fontSm, color: colors.title }}></Text>
                             </View>
-                            <Text style={[styles.tableItem, { color: colors.text }]}>{user.completeName}</Text>
-                            <Text style={[styles.tableItem, { color: colors.text }]}>{user.username}</Text>
-                            <Text style={[styles.tableItem, { color: colors.text }]}>{user.mobileNumber}</Text>
-                            <Text style={[styles.tableItem, { color: colors.text }]}>
-                                {user.accountStatus ? 'Active' : 'Inactive'}
-                            </Text>
-                            <Text style={[styles.tableItem, { color: colors.text }]}>
-                                {new Date(user.dateRegister).toLocaleDateString()}
-                            </Text>
-
-                            <View style={styles.iconColumn}>
-                                <Ripple onPress={() => console.log(`Edit ${user.username}`)}>
-                                    <FeatherIcon name="more-vertical" size={18} color={COLORS.primary} />
-                                </Ripple>
+                            <Text style={[styles.tableItemHead, { color: colors.title }]}>Name</Text>
+                            <Text style={[styles.tableItemHead, { color: colors.title }]}>Username</Text>
+                            <Text style={[styles.tableItemHead, { color: colors.title }]}>Mobile</Text>
+                            <Text style={[styles.tableItemHead, { color: colors.title }]}>Status</Text>
+                            <Text style={[styles.tableItemHead, { color: colors.title }]}>Date Registered</Text>
+                            <View style={[styles.iconColumn]}>
+                                <Text style={{ ...FONTS.fontSm, color: colors.title }}>Action</Text>
                             </View>
                         </View>
-                    ))}
+
+                        {paginatedUsers.map((user) => (
+                            <View
+                                key={user.userId}
+                                style={{ flexDirection: 'row', height: 40, alignItems: 'center', width: '100%' }}
+                            >
+                                <Text style={[styles.tableItem, { color: COLORS.primary }]}>₱ {user.loadAmount}</Text>
+                                <View style={[styles.iconColumn, {width: 15}]}>
+                                    <Ripple
+                                        onPress={() => {
+                                            handleTopUpPress();
+                                            setSelectedUser(user);
+                                            setTopUpModalVisible(true);
+                                        }}
+                                        style={[
+                                            styles.paginationButton,
+                                            {
+                                                backgroundColor: COLORS.primary},
+                                        ]}
+                                    >
+                                        <Image source={ICONS.trade} style={{ height: 18, width: 18 }} />
+                                    </Ripple>
+                                </View>
+                                <Text style={[styles.tableItem, { color: colors.text }]}>{user.completeName}</Text>
+                                <Text style={[styles.tableItem, { color: colors.text }]}>{user.username}</Text>
+                                <Text style={[styles.tableItem, { color: colors.text }]}>{user.mobileNumber}</Text>
+                                <Text style={[styles.tableItem, { color: colors.text }]}>
+                                    {user.accountStatus ? 'Active' : 'Inactive'}
+                                </Text>
+                                <Text style={[styles.tableItem, { color: colors.text }]}>
+                                    {new Date(user.dateRegister).toLocaleDateString()}
+                                </Text>
+
+                                <View style={styles.iconColumn}>
+                                    <Ripple onPress={() => console.log(`Edit ${user.username}`)}>
+                                        <FeatherIcon name="more-vertical" size={18} color={COLORS.primary} />
+                                    </Ripple>
+                                </View>
+                            </View>
+                        ))}
+                    </View>
+                </ScrollView>
+
+                <View style={{ paddingHorizontal: 15 }}>
+                    <View style={[styles.scrollBar, { backgroundColor: colors.card }]}>
+                        <Animated.View
+                            style={{
+                                height: 5,
+                                left: 3,
+                                borderRadius: 8,
+                                backgroundColor: COLORS.primary,
+                                width: scrollIndicatorSize - 36,
+                                transform: [{ translateX: scrollIndicatorPosition }],
+                            }}
+                        />
+                    </View>
                 </View>
-            </ScrollView>
 
-            <View style={{ paddingHorizontal: 15 }}>
-                <View style={[styles.scrollBar, { backgroundColor: colors.card }]}>
-                    <Animated.View
-                        style={{
-                            height: 5,
-                            left: 3,
-                            borderRadius: 8,
-                            backgroundColor: COLORS.primary,
-                            width: scrollIndicatorSize - 36,
-                            transform: [{ translateX: scrollIndicatorPosition }],
-                        }}
-                    />
-                </View>
-            </View>
+                <View style={styles.paginationContainer}>
+                    <Text style={{ ...FONTS.fontXs, color: colors.text }}>
+                        Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, userData.length)} of {userData.length} entries
+                    </Text>
 
-            <View style={styles.paginationContainer}>
-                <Text style={{ ...FONTS.fontXs, color: colors.text }}>
-                    Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, userData.length)} of {userData.length} entries
-                </Text>
-
-                <View style={styles.pagination}>
-                    <Ripple
-                        disabled={currentPage === 1}
-                        onPress={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                        style={[styles.paginationButton, { backgroundColor: colors.card }]}
-                    >
-                        <FeatherIcon size={14} color={colors.title} name='chevron-left' />
-                    </Ripple>
-
-                    {Array.from({ length: totalPages }, (_, i) => (
+                    <View style={styles.pagination}>
                         <Ripple
-                            key={i}
-                            onPress={() => setCurrentPage(i + 1)}
-                            style={[
-                                styles.paginationButton,
-                                {
-                                    backgroundColor: currentPage === i + 1 ? COLORS.primary : colors.card,
-                                },
-                            ]}
+                            disabled={currentPage === 1}
+                            onPress={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            style={[styles.paginationButton, { backgroundColor: colors.card }]}
                         >
-                            <Text style={{
-                                ...FONTS.fontSm,
-                                color: currentPage === i + 1 ? '#fff' : colors.text
-                            }}>
-                                {i + 1}
-                            </Text>
+                            <FeatherIcon size={14} color={colors.title} name='chevron-left' />
                         </Ripple>
-                    ))}
 
-                    <Ripple
-                        disabled={currentPage === totalPages}
-                        onPress={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                        style={[styles.paginationButton, { backgroundColor: colors.card }]}
-                    >
-                        <FeatherIcon size={14} color={colors.title} name='chevron-right' />
-                    </Ripple>
+                        {Array.from({ length: totalPages }, (_, i) => (
+                            <Ripple
+                                key={i}
+                                onPress={() => setCurrentPage(i + 1)}
+                                style={[
+                                    styles.paginationButton,
+                                    {
+                                        backgroundColor: currentPage === i + 1 ? COLORS.primary : colors.card,
+                                    },
+                                ]}
+                            >
+                                <Text style={{
+                                    ...FONTS.fontSm,
+                                    color: currentPage === i + 1 ? '#fff' : colors.text
+                                }}>
+                                    {i + 1}
+                                </Text>
+                            </Ripple>
+                        ))}
+
+                        <Ripple
+                            disabled={currentPage === totalPages}
+                            onPress={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            style={[styles.paginationButton, { backgroundColor: colors.card }]}
+                        >
+                            <FeatherIcon size={14} color={colors.title} name='chevron-right' />
+                        </Ripple>
+                    </View>
                 </View>
-            </View>
 
-            <Modal
-                animationType="fade"
-                transparent={true}
-                visible={modalVisible}
-                onRequestClose={() => setModalVisible(false)}
-            >
-                <View style={styles.modalOverlay}>
-                    <SuccessModal
-                        message={modalMessage}
-                        isSuccess={isSuccess}
-                        onClose={() => setModalVisible(false)}
-                    />
-                </View>
-            </Modal>
-            <Modal
-                animationType="slide"
-                transparent={false}
-                visible={topUpModalVisible}
-                onRequestClose={() => {
-                    setTopUpModalVisible(false);
-                    setSelectedUser(null);
-                }}
-            >
-                <View style={{ ...styles.container, backgroundColor: colors.background }}>
-                    <HeaderBar
-                        leftIcon="back"
-                        title={`Top-Up: ${selectedUser?.completeName ?? ''}`}
-                        onPressLeft={() => {
-                            setTopUpModalVisible(false);
-                            setSelectedUser(null);
-                        }}
-                    />
-                    <ScrollView
-                        contentContainerStyle={{ paddingBottom: 100 }}
-                        keyboardShouldPersistTaps="handled">
-                        <View style={[GlobalStyleSheet.container, { padding: 15 }]}>
-                            <View style={{ marginBottom: 20 }}>
-                                <ImageBackground
-                                    source={IMAGES.bg1}
-                                    style={{
-                                        paddingHorizontal: 15,
-                                        paddingVertical: 15,
-                                        backgroundColor: COLORS.secondary,
-                                        borderRadius: 12,
-                                        flexDirection: 'row',
-                                        alignItems: 'flex-end',
-                                        overflow: 'hidden'
-                                    }}
-                                >
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={{ ...FONTS.fontSm, color: COLORS.white, opacity: 0.7, marginTop: 20, marginLeft: 20 }}>Available Balance</Text>
-                                        <TextInput
-                                            style={{
-                                                ...FONTS.h3,
-                                                color: COLORS.white,
-                                                ...FONTS.fontMedium,
-                                                padding: 0,
-                                                height: 50,
-                                                marginTop: 15,
-                                                marginLeft: 35
-                                            }}
-                                            value={availableBalance.toString()}
-                                            editable={false}
-                                        />
-                                    </View>
-                                </ImageBackground>
-
-                                <View style={{ alignItems: 'center', marginVertical: -20, zIndex: 1 }}>
-                                    <TouchableOpacity
-                                        activeOpacity={1}
+                <Modal
+                    animationType="fade"
+                    transparent={true}
+                    visible={modalVisible}
+                    onRequestClose={() => setModalVisible(false)}
+                >
+                    <View style={styles.modalOverlay}>
+                        <SuccessModal
+                            message={modalMessage}
+                            isSuccess={isSuccess}
+                            onClose={() => setModalVisible(false)}
+                        />
+                    </View>
+                </Modal>
+                <Modal
+                    animationType="slide"
+                    transparent={false}
+                    visible={topUpModalVisible}
+                    onRequestClose={() => {
+                        setTopUpModalVisible(false);
+                        setSelectedUser(null);
+                    }}
+                >
+                    <View style={{ ...styles.container, backgroundColor: colors.background }}>
+                        <HeaderBar
+                            leftIcon="back"
+                            title={`Top-Up: ${selectedUser?.completeName ?? ''}`}
+                            onPressLeft={() => {
+                                setTopUpModalVisible(false);
+                                setSelectedUser(null);
+                            }}
+                        />
+                        <ScrollView
+                            contentContainerStyle={{ paddingBottom: 100 }}
+                            keyboardShouldPersistTaps="handled">
+                            <View style={[GlobalStyleSheet.container, { padding: 15 }]}>
+                                <View style={{ marginBottom: 20 }}>
+                                    <ImageBackground
+                                        source={IMAGES.bg1}
                                         style={{
-                                            height: 50,
-                                            width: 50,
-                                            backgroundColor: COLORS.dark,
-                                            borderRadius: 50,
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
+                                            paddingHorizontal: 15,
+                                            paddingVertical: 15,
+                                            backgroundColor: COLORS.secondary,
+                                            borderRadius: 12,
+                                            flexDirection: 'row',
+                                            alignItems: 'flex-end',
+                                            overflow: 'hidden'
                                         }}
                                     >
-                                        <Image source={ICONS.trade} style={{ height: 28, width: 28 }} />
-                                    </TouchableOpacity>
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={{ ...FONTS.fontSm, color: COLORS.white, opacity: 0.7, marginTop: 20, marginLeft: 20 }}>Available Balance</Text>
+                                            <TextInput
+                                                style={{
+                                                    ...FONTS.h3,
+                                                    color: COLORS.white,
+                                                    ...FONTS.fontMedium,
+                                                    padding: 0,
+                                                    height: 50,
+                                                    marginTop: 15,
+                                                    marginLeft: 35
+                                                }}
+                                                value={availableBalance.toString()}
+                                                editable={false}
+                                            />
+                                        </View>
+                                    </ImageBackground>
+
+                                    <View style={{ alignItems: 'center', marginVertical: -20, zIndex: 1 }}>
+                                        <TouchableOpacity
+                                            activeOpacity={1}
+                                            style={{
+                                                height: 50,
+                                                width: 50,
+                                                backgroundColor: COLORS.dark,
+                                                borderRadius: 50,
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                            }}
+                                        >
+                                            <Image source={ICONS.trade} style={{ height: 28, width: 28 }} />
+                                        </TouchableOpacity>
+                                    </View>
+
+                                    <ImageBackground
+                                        source={IMAGES.bg1}
+                                        style={{
+                                            paddingHorizontal: 15,
+                                            paddingVertical: 15,
+                                            backgroundColor: COLORS.secondary,
+                                            borderRadius: 12,
+                                            flexDirection: 'row',
+                                            alignItems: 'flex-end',
+                                            overflow: 'hidden',
+                                        }}
+                                    >
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={{ ...FONTS.fontSm, color: COLORS.white, opacity: 0.7, marginTop: 20, marginLeft: 20 }}>Send Amount</Text>
+                                            <TextInput
+                                                ref={sendInputRef}
+                                                style={{
+                                                    ...FONTS.h3,
+                                                    color: COLORS.white,
+                                                    ...FONTS.fontMedium,
+                                                    padding: 0,
+                                                    height: 50,
+                                                    marginTop: 15,
+                                                    marginLeft: 35
+                                                }}
+                                                value={sendAmount}
+                                                onChangeText={handleSendChange}
+                                                keyboardType="numeric"
+                                                inputMode="decimal"
+                                            />
+                                        </View>
+                                    </ImageBackground>
                                 </View>
 
-                                <ImageBackground
-                                    source={IMAGES.bg1}
-                                    style={{
-                                        paddingHorizontal: 15,
-                                        paddingVertical: 15,
-                                        backgroundColor: COLORS.secondary,
-                                        borderRadius: 12,
-                                        flexDirection: 'row',
-                                        alignItems: 'flex-end',
-                                        overflow: 'hidden',
-                                    }}
-                                >
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={{ ...FONTS.fontSm, color: COLORS.white, opacity: 0.7, marginTop: 20, marginLeft: 20 }}>Send Amount</Text>
-                                        <TextInput
-                                            ref={sendInputRef}
-                                            style={{
-                                                ...FONTS.h3,
-                                                color: COLORS.white,
-                                                ...FONTS.fontMedium,
-                                                padding: 0,
-                                                height: 50,
-                                                marginTop: 15,
-                                                marginLeft: 35
-                                            }}
-                                            value={sendAmount}
-                                            onChangeText={handleSendChange}
-                                            keyboardType="numeric"
-                                            inputMode="decimal"
-                                        />
-                                    </View>
-                                </ImageBackground>
+                                <CustomButton
+                                    disabled={!sendAmount || parseFloat(sendAmount) <= 0}
+                                    onPress={handleSendPress}
+                                    title="Send" />
+
                             </View>
-
-                            <CustomButton
-                                disabled={!sendAmount || parseFloat(sendAmount) <= 0}
-                                onPress={handleSendPress}
-                                title="Send" />
-
-                        </View>
-                    </ScrollView>
-                </View>
-            </Modal>
+                        </ScrollView>
+                    </View>
+                </Modal>
+            </View>
         </View>
     );
 };

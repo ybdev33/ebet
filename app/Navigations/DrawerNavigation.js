@@ -9,7 +9,7 @@ const DrawerNavigation = () => {
     return (
         <>
             <Drawer.Navigator
-                drawerContent={() => <Sidebar/>}
+                drawerContent={(props) => <Sidebar {...props} />}
                 screenOptions={{
                     headerShown : false
                 }}
