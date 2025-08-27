@@ -72,6 +72,8 @@ const Home = () => {
                             const result = await response.json();
 
                             if (response.ok && isActive) {
+                                console.log("result", result);
+                                console.log(`${GAMING_DOMAIN}/api/Common/GetDashBoardDetails?authorId=${userId}&date=08-06-2025`);
                                 setDashData(result.data);
                             }
                         } catch (error) {
