@@ -62,7 +62,10 @@ const Home = () => {
 
                     const fetchTotalDash = async () => {
                         try {
-                            const response = await fetch(`${GAMING_DOMAIN}/api/Common/GetDashBoardDetails?authorId=${userId}&date=08-06-2025`, {
+                            const today = new Date();
+                            const formattedDate = today.toLocaleDateString('en-GB').split('/').join('-');
+
+                            const response = await fetch(`${GAMING_DOMAIN}/api/Common/GetDashBoardDetails?authorId=${userId}&date==${formattedDate}`, {
                                 method: 'GET',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -73,7 +76,7 @@ const Home = () => {
 
                             if (response.ok && isActive) {
                                 console.log("result", result);
-                                console.log(`${GAMING_DOMAIN}/api/Common/GetDashBoardDetails?authorId=${userId}&date=08-06-2025`);
+                                console.log(`${GAMING_DOMAIN}/api/Common/GetDashBoardDetails?authorId=${userId}&date==${formattedDate}`);
                                 setDashData(result.data);
                             }
                         } catch (error) {
@@ -106,19 +109,22 @@ const Home = () => {
             <ScrollView showsHorizontalScrollIndicator={false}>
                 <BalanceChart amount={amount}/>
                 <Animatable.View
-                    animation="fadeInRight" 
+                    animation="fadeInRight"
                     duration={500}
                     delay={1000}
                 >
                     <BalanceWidgets dashData={dashData}/>
                 </Animatable.View>
-                <Animatable.View
-                    animation="fadeIn"
-                    duration={500}
-                    delay={1500}
-                >
-                    <DrawResult dashData={dashData} />
-                </Animatable.View>
+
+                {dashData?.resultList && dashData.resultList.length > 0 && (
+                    <Animatable.View
+                        animation="fadeIn"
+                        duration={500}
+                        delay={1500}
+                    >
+                        <DrawResult dashData={dashData} />
+                    </Animatable.View>
+                )}
             </ScrollView>
 
             <Modal

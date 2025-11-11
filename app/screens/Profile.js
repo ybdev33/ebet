@@ -40,6 +40,11 @@ const Profile = ({navigation}) => {
             navigate : "users",
         },
         {
+            icon : ICONS.qr,
+            title : "Printer",
+            navigate : "printerScreen",
+        },
+        {
             icon : ICONS.logout,
             title : "Logout",
             navigate : "signin",

@@ -1,7 +1,6 @@
 import 'react-native-gesture-handler';
-import React, { Component } from 'react';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { Platform, SafeAreaView } from 'react-native';
+import React from 'react';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Routes from './app/Navigations/Routes';
 import { useFonts } from 'expo-font';
 
@@ -11,7 +10,7 @@ const App = () =>{
         PoppinsRegular: require('./app/assets/fonts/Poppins-Regular.ttf'),
         PoppinsSemiBold : require('./app/assets/fonts/Poppins-SemiBold.ttf'),
         PoppinsMedium : require('./app/assets/fonts/Poppins-Medium.ttf'),
-		});  
+		});
 
 		if(!loaded){
 		  return null;

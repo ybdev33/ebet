@@ -31,6 +31,8 @@ interface SignInProps {
 }
 
 const SignUp: React.FC<SignInProps> = ({navigation, route }) => {
+    console.log(route.params);
+
     const { GAMING_DOMAIN } = Constants.expoConfig?.extra || {};
 
     const theme = useTheme();
@@ -182,8 +184,7 @@ const SignUp: React.FC<SignInProps> = ({navigation, route }) => {
                                     Enter your details below
                                 </Animatable.Text>
                             </View>
-                            {referralCode && <Text>Referral Code: {referralCode}</Text>}
-                            {userType && <Text>User Type: {userType}</Text>}
+
                             <Animatable.View
                                 animation="fadeInUp"
                                 duration={1000}

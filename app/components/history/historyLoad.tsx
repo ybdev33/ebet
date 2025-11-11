@@ -124,7 +124,7 @@ const HistoryLoad: React.FC = () => {
                     const userId = user.data.userId;
                     const date = new Date().toISOString().split("T")[0];
 
-                    const response = await fetch(`${GAMING_DOMAIN}/api/LoadManagement/GetHistoryTransaction?authorId=${userId}&date=${date}`, {
+                    const response = await fetch(`${GAMING_DOMAIN}/api/LoadManagement/GetHistoryTransaction?authorId=${userId}&date=${date}&type=bet`, {
                         method: 'GET',
                         headers: {
                             'Content-Type': 'application/json',
