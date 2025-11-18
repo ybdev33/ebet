@@ -18,9 +18,11 @@ export default {
         android: {
             package: "com.ybdev33.ebet",
             permissions: [
+                "BLUETOOTH",
+                "BLUETOOTH_ADMIN",
                 "BLUETOOTH_CONNECT",
                 "BLUETOOTH_SCAN",
-                "BLUETOOTH_ADVERTISE"
+                "ACCESS_FINE_LOCATION"
             ],
             compileSdkVersion: 36,
             targetSdkVersion: 36,

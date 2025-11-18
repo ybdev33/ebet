@@ -42,7 +42,7 @@ const Profile = ({navigation}) => {
         {
             icon : ICONS.qr,
             title : "Printer",
-            navigate : "printerScreen",
+            navigate : "bluetoothPrinterScreen",
         },
         {
             icon : ICONS.logout,
