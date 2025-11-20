@@ -39,7 +39,7 @@ export const generateReceiptText = ({
   receipt += ESC + "@"; // initialize
 
   // Store header
-  receipt += ESC + "!" + "\x20";
+  receipt += ESC + "!" + "\x25";
   receipt += storeName + "\n";
   receipt += ESC + "!" + "\x00";
 

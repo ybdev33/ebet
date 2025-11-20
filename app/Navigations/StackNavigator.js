@@ -12,7 +12,7 @@ import History from '../screens/history';
 import Referral from '../screens/referral';
 import BetPicker from "../screens/betPicker";
 import Users from '../screens/users';
-import BluetoothPrinterScreen from '../screens/BluetoothPrinterScreen';
+import PrinterScreen from '../screens/printerScreen';
 
 const Stack = createStackNavigator();
 
@@ -43,7 +43,7 @@ const StackNavigator = () => {
                 <Stack.Screen name="referral" component={Referral}/>
                 <Stack.Screen name="betPicker" component={BetPicker}/>
                 <Stack.Screen name="users" component={Users}/>
-                <Stack.Screen name="bluetoothPrinterScreen" component={BluetoothPrinterScreen}/>
+                <Stack.Screen name="printerScreen" component={PrinterScreen}/>
             </Stack.Navigator>
         </>
     );
