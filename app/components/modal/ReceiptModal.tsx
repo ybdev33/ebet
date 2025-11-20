@@ -1,8 +1,12 @@
-import React from 'react';
-import { Modal, View, Text, StyleSheet, Image, ScrollView, ImageBackground, TouchableWithoutFeedback, } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import { Modal, View, Text, StyleSheet, Image, ScrollView, ImageBackground, TouchableWithoutFeedback, TouchableOpacity, } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
-import { IMAGES } from '../../constants/theme';
+import { COLORS, IMAGES, FONTS } from '../../constants/theme';
 import Constants from "expo-constants";
+
+import { generateReceiptText, splitChunks, escPosQR, escposImageFromBase64RN } from '../../printer/ReceiptPrinter';
+import { usePrinter } from "../../printer/usePrinter";
+import { logoBase64 } from '../../../assets/logoBase64';
 
 const { GAMING_NAME } = Constants.expoConfig?.extra || {};
 
@@ -32,6 +36,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
                                                        total,
                                                        reference,
                                                    }) => {
+    const { connectLastPrinter, printBuffer } = usePrinter();
 
     const formatBetTime = (isoString: string) => {
         const date = new Date(isoString);
@@ -44,6 +49,49 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
         const minutes = pad(date.getMinutes());
 
         return `${year}-${month}-${day} ${hours}:${minutes}`;
+    };
+
+    const printReceipt = async () => {
+        try {
+            await connectLastPrinter(); // auto reconnect to last printer
+
+            const logo = escposImageFromBase64RN(logoBase64, 384);
+
+            const items = combinations.map(c => ({
+                label: c.label,
+                amount: c.amount,
+                draw: c.draw,
+                win: c.win,
+            }));
+
+            const receiptText = generateReceiptText({
+                header: "Philippines Online Sweepstakes",
+                appName: "eBet",
+                officialText: "OFFICIAL RECEIPT",
+                betTime: formatBetTime(betTime),
+                items,
+            });
+
+            const textBytes = Buffer.from(receiptText, "utf-8");
+
+            const ESC = "\x1B";
+            const qrBytes = Buffer.from(
+                `${ESC}a\x01` + escPosQR(reference) + `${ESC}a\x00`,
+                "binary"
+            );
+
+            const referenceBytes = Buffer.from(
+                `\n${ESC}a\x01REFERENCE NUMBER\n${reference}\n\n\n\n${ESC}a\x00`,
+                "utf-8"
+            );
+
+            const finalBuffer = Buffer.concat([logo, textBytes, qrBytes, referenceBytes]);
+
+            await printBuffer(finalBuffer);
+        } catch (e) {
+            console.log("Print error", e);
+            alert("Failed to print receipt");
+        }
     };
 
     return (
@@ -89,6 +137,14 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
                                 <Text style={styles.reference}>REFERENCE NUMBER</Text>
                                 <Text style={styles.referenceValue}>{reference}</Text>
                             </View>
+
+                            <TouchableOpacity
+                                onPress={printReceipt}
+                                style={styles.printButton}
+                                style={[styles.printButton]}
+                            >
+                                <Text style={[FONTS.h6, {color:COLORS.white}]}>Print 🖨️</Text>
+                            </TouchableOpacity>
                         </View>
                     </View>
                 </View>
@@ -103,6 +159,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0,0,0,0.6)',
         justifyContent: 'center',
         alignItems: 'center',
+        position: 'relative',
     },
     background: {
         flex: 1,
@@ -201,6 +258,22 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: 'bold',
     },
+    printButton: {
+        position: 'absolute',
+        bottom: -15,
+        right: -28,
+        backgroundColor: COLORS.dark,
+        padding: 10,
+        borderRadius: 8,
+        alignItems: 'center',
+
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+
+        elevation: 5,
+    }
 });
 
 export default ReceiptModal;

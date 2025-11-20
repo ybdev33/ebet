@@ -1,11 +1,17 @@
 import { Buffer } from "buffer";
 
-export type ReceiptItem = { name: string; qty: number; price: number };
+interface ReceiptItem {
+    label: string;
+    amount: number;
+    draw: string;
+    win: number;
+}
 
 export interface ReceiptProps {
-  storeName: string;
-  storeAddress: string;
-  storeTel: string;
+  header: string;
+  appName: string;
+  officialText: string;
+  betTime: string;
   items: ReceiptItem[];
   qrData?: string;
 }
@@ -15,7 +21,7 @@ export const escPosQR = (data: string) => {
   const GS = "\x1D";
   let qr = "";
   qr += GS + "(k" + String.fromCharCode(4,0,49,65,50,0);
-  qr += GS + "(k" + String.fromCharCode(3,0,49,67,6);
+  qr += GS + "(k" + String.fromCharCode(3,0,49,67,1);
   qr += GS + "(k" + String.fromCharCode(3,0,49,69,48);
 
   const len = data.length + 3;
@@ -29,37 +35,65 @@ export const escPosQR = (data: string) => {
 
 // Generate receipt text
 export const generateReceiptText = ({
-  storeName,
-  storeAddress,
-  storeTel,
-  items,
-}: ReceiptProps): Buffer => {
-  const ESC = "\x1B";
-  let receipt = "";
-  receipt += ESC + "@"; // initialize
+                                        header,
+                                        appName,
+                                        officialText,
+                                        betTime,
+                                        items,
+                                    }: ReceiptProps): Buffer => {
+    const ESC = "\x1B";
+    const CENTER = ESC + "a" + "\x01";
+    const LEFT   = ESC + "a" + "\x00";
 
-  // Store header
-  receipt += ESC + "!" + "\x25";
-  receipt += storeName + "\n";
-  receipt += ESC + "!" + "\x00";
+    let receipt = "";
+    receipt += ESC + "@"; // initialize
 
-  receipt += storeAddress + "\nTel: " + storeTel + "\n";
-  receipt += "-----------------------------\n";
-  receipt += "Item           QTY  Price\n";
-  receipt += "-----------------------------\n";
+    // Center header - medium, bold
+    receipt += CENTER;
+    receipt += ESC + "E" + "\x01";        // bold on
+    receipt += ESC + "!" + "\x08";        // double height
+    receipt += header + "\n";
+    receipt += ESC + "E" + "\x00";        // bold off
 
-  items.forEach(item => {
-    const name = item.name.length > 15 ? item.name.slice(0,15) : item.name.padEnd(15," ");
-    const qty = String(item.qty).padEnd(3," ");
-    const price = item.price.toFixed(2).padStart(6," ");
-    receipt += `${name}${qty} x${price}\n`;
-  });
+    // Center app name - small, normal
+    receipt += CENTER;
+    receipt += ESC + "E" + "\x00";        // bold off
+    receipt += ESC + "!" + "\x00";        // normal font size
+    receipt += appName + "\n";
 
-  receipt += "-----------------------------\n";
-  const total = items.reduce((sum,i) => sum + i.qty * i.price, 0);
-  receipt += `TOTAL: ${total.toFixed(2)}\n\n`;
+    // Center official text - medium, bold
+    receipt += CENTER;
+    receipt += ESC + "E" + "\x01";        // bold on
+    receipt += ESC + "!" + "\x08";        // double height
+    receipt += officialText + "\n\n";
+    receipt += ESC + "E" + "\x00";        // bold off
 
-  return Buffer.from(receipt, "utf-8");
+    // Back to left
+    receipt += LEFT;
+    receipt += ESC + "!" + "\x00";
+    receipt += "Bet Time: " + betTime + "\n";
+
+    receipt += LEFT + "\n";
+    receipt += LEFT + "Bet      Amt      Draw    Win\n";
+    receipt += LEFT + "-".repeat(32) + "\n";
+
+    // Table rows
+    items.forEach(item => {
+        // Adjust padding to match header
+        const label = item.label.padEnd(9, ' ');
+        const amount = ("P" + item.amount).padStart(2, ' ');
+        const draw = item.draw.padStart(10, ' ');
+        const win = ("P" + item.win).padStart(8, ' ');
+
+        receipt += LEFT + `${label}${amount}${draw}${win}\n`;
+    });
+
+    // Total
+    const total = items.reduce((sum, i) => sum + i.amount, 0);
+    receipt += LEFT + "-".repeat(32) + "\n";
+    receipt += LEFT + `Total: P${total.toFixed(2)}\n\n`;
+
+    return Buffer.from(receipt, "utf-8");
 };
 
 // Split buffer into chunks (default 512 bytes)
@@ -70,3 +104,18 @@ export const splitChunks = (buffer: Buffer, chunkSize = 512): Buffer[] => {
   }
   return chunks;
 };
+
+// Convert base64 image to ESC/POS image data
+export function escposImageFromBase64RN(base64: string, width = 384): Buffer {
+    const bytes = Buffer.from(base64, "base64");
+    const rowBytes = width / 8;
+    const height = Math.floor(bytes.length / rowBytes);
+    const header = Buffer.from([
+        0x1d, 0x76, 0x30, 0x00,
+        rowBytes & 0xff,
+        (rowBytes >> 8) & 0xff,
+        height & 0xff,
+        (height >> 8) & 0xff,
+    ]);
+    return Buffer.concat([header, bytes]);
+}

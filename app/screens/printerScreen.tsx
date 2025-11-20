@@ -19,28 +19,11 @@ import { Buffer } from 'buffer';
 import { useTheme } from '@react-navigation/native';
 import { FONTS, COLORS } from '../constants/theme';
 import SuccessModal from '../components/modal/SuccessModal';
-import { generateReceiptText, splitChunks, escPosQR } from '../printer/ReceiptPrinter';
+import { generateReceiptText, splitChunks, escPosQR, escposImageFromBase64RN } from '../printer/ReceiptPrinter';
+import { sendInChunks } from '../printer/printerUtils';
 import { logoBase64 } from '../../assets/logoBase64';
 
 global.Buffer = global.Buffer || Buffer;
-
-// Helper to sleep (prevents overflowing printer buffer)
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-// Convert base64 image to ESC/POS image data
-export function escposImageFromBase64RN(base64: string, width = 384): Buffer {
-    const bytes = Buffer.from(base64, "base64");
-    const rowBytes = width / 8;
-    const height = Math.floor(bytes.length / rowBytes);
-    const header = Buffer.from([
-        0x1d, 0x76, 0x30, 0x00,
-        rowBytes & 0xff,
-        (rowBytes >> 8) & 0xff,
-        height & 0xff,
-        (height >> 8) & 0xff,
-    ]);
-    return Buffer.concat([header, bytes]);
-}
 
 const PrinterScreen: React.FC = () => {
     const { colors } = useTheme();
@@ -200,45 +183,6 @@ const PrinterScreen: React.FC = () => {
         }
     };
 
-    const sendInChunks = async (buffer: Buffer) => {
-        if (!connectedDevice || !writableChar) return;
-
-        // 3. OPTIMIZATION: Calculate chunk size based on MTU
-        // We subtract 3 bytes for BLE headers.
-        // If MTU is 512, we send ~509 bytes. If MTU is 23, we send 20.
-        const maxChunk = currentMTU > 23 ? currentMTU - 3 : 20;
-
-        const chunks = splitChunks(buffer, maxChunk);
-
-        for (let i = 0; i < chunks.length; i++) {
-            const chunkBase64 = chunks[i].toString("base64");
-
-            if (writableChar.isWritableWithoutResponse) {
-                // FAST MODE: Fire and forget
-                await connectedDevice.writeCharacteristicWithoutResponseForService(
-                    writableChar.serviceUUID,
-                    writableChar.uuid,
-                    chunkBase64
-                );
-
-                // 4. OPTIMIZATION: Flow Control
-                // If we send too fast, the printer's internal buffer (4KB-128KB) fills up
-                // and it starts printing garbage or stops.
-                // We pause for 10ms every 5 chunks to let the printer process.
-                if (i % 5 === 0) {
-                    await sleep(10);
-                }
-            } else {
-                // SLOW MODE: Wait for ACK (Fallback)
-                await connectedDevice.writeCharacteristicWithResponseForService(
-                    writableChar.serviceUUID,
-                    writableChar.uuid,
-                    chunkBase64
-                );
-            }
-        }
-    };
-
     // ------------------- SCAN -------------------
     const startScan = () => {
         if (scanning) return;
@@ -263,51 +207,6 @@ const PrinterScreen: React.FC = () => {
         setLoading(false);
     };
 
-    // ------------------- PRINT RECEIPT -------------------
-    const printReceipt = async () => {
-        if (!connectedDevice || !writableChar) {
-            setModalMessage("Please connect to a printer first");
-            setIsSuccess(false);
-            setModalVisible(true);
-            return;
-        }
-
-        try {
-            setLoading(true);
-
-            const imageBytes = escposImageFromBase64RN(logoBase64, 384);
-
-            const receiptText = generateReceiptText({
-                storeName: "eBet Game",
-                storeAddress: "123 Main St",
-                storeTel: "123-456-7890",
-                items: [
-                    { name: "2S2", qty: 2, price: 1.5 },
-                    { name: "2S3", qty: 3, price: 0.75 },
-                ],
-            });
-            const receiptTextBytes = Buffer.isBuffer(receiptText) ? receiptText : Buffer.from(receiptText, "utf-8");
-            const qrBytes = Buffer.from(escPosQR("https://example.com"), "utf-8");
-
-            const footerBytes = Buffer.from("\n\n\n", "utf-8");
-
-            const fullBuffer = Buffer.concat([imageBytes, receiptTextBytes, qrBytes, footerBytes]);
-
-            await sendInChunks(fullBuffer);
-
-            setModalMessage("Test sent to printer!");
-            setIsSuccess(true);
-            setModalVisible(true);
-        } catch (e: any) {
-            console.log("Print Error", e.message || e);
-            setModalMessage(`Print Error: ${e.message || "Unknown error"}`);
-            setIsSuccess(false);
-            setModalVisible(true);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     const printTest = async () => {
         if (!connectedDevice || !writableChar) {
             setModalMessage("Please connect to a printer first");
@@ -319,20 +218,20 @@ const PrinterScreen: React.FC = () => {
         try {
             setLoading(true);
 
-            // ONE SIMPLE LINE ONLY
-            const text = "Connected: Print test 123\n\n\n\n\n\n\n\n\n\n";
+            const text = "\n\n\nConnected: Print test 123\n\n\n\n\n\n\n";
             const textBytes = Buffer.from(text, "utf-8");
 
-            await sendInChunks(textBytes);
+            await sendInChunks(textBytes, connectedDevice, writableChar, currentMTU);
 
             setModalMessage("Test sent to printer!");
             setIsSuccess(true);
             setModalVisible(true);
         } catch (e: any) {
-            console.log("Print Error", e.message || e);
             setModalMessage(`Print Error: ${e.message || "Unknown error"}`);
             setIsSuccess(false);
             setModalVisible(true);
+
+            disconnectDevice();
         } finally {
             setLoading(false);
         }
@@ -353,16 +252,18 @@ const PrinterScreen: React.FC = () => {
         await AsyncStorage.setItem("bluetoothEnabled", JSON.stringify(value));
 
         if (!value) {
-            stopScan();
-            setDevicesMap({});
-            if (connectedDevice) {
+            try {
                 await disconnectDevice();
+            } catch (e) {
+                console.log("Error disconnecting device:", e);
+            } finally {
+                stopScan();
+                setDevicesMap({});
             }
-        } else {
-            startScan();
+            return;
         }
 
-        return;
+        startScan();
     };
 
     const renderSignal = (rssi?: number) => {
@@ -389,8 +290,14 @@ const PrinterScreen: React.FC = () => {
         return (
             <Pressable
                 android_ripple={{ color: colors.border }}
-                style={[styles.deviceRow, isConnected && { backgroundColor: colors.card }]}
-                onPress={() => connectToDevice(item)}
+                style={[
+                    styles.deviceRow,
+                    isConnected && { backgroundColor: colors.card },
+                    (loading || isConnected) && { opacity: 0.6 }
+                ]}
+                onPress={() => !loading && connectToDevice(item)}
+
+                disabled={loading || isConnected}
             >
                 <View style={styles.leftCol}>
                     <View style={[styles.deviceIcon, { backgroundColor: colors.card }]}>
@@ -484,7 +391,7 @@ const PrinterScreen: React.FC = () => {
                 />
             )}
 
-            {connectedDevice && (
+            {bluetoothEnabled && connectedDevice && (
                 <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: colors.card, padding: 16, borderTopWidth: 1, borderTopColor: colors.border }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'top' }}>
                         <View>
