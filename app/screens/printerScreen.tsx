@@ -133,10 +133,20 @@ const PrinterScreen: React.FC = () => {
 
     const connectToDevice = async (device: Device) => {
         stopScan();
-        try {
-            setConnecting(true);
-            setLoading(true);
 
+        // Check if the device has a valid name
+        if (!device.name || device.name.trim() === "") {
+            console.log("Cannot connect: device has no name");
+            setModalMessage('Cannot connect: device has no name');
+            setIsSuccess(false);
+            setModalVisible(true);
+            return; // exit early
+        }
+
+        setConnecting(true);
+        setLoading(true);
+
+        try {
             const connected = await device.connect();
             await connected.discoverAllServicesAndCharacteristics();
 
@@ -147,7 +157,7 @@ const PrinterScreen: React.FC = () => {
             if (Platform.OS === 'android') {
                 try {
                     mtu = (await connected.requestMTU(512)).mtu;
-                } catch(e) {
+                } catch (e) {
                     mtu = 23;
                 }
             }
@@ -174,10 +184,10 @@ const PrinterScreen: React.FC = () => {
 
         } catch (e: any) {
             console.log(e);
+            setConnectedDevice(null);
             setModalMessage('Failed to connect to device');
             setIsSuccess(false);
             setModalVisible(true);
-            setConnectedDevice(null);
         } finally {
             setLoading(false);
             setConnecting(false);
@@ -258,7 +268,7 @@ const PrinterScreen: React.FC = () => {
                 return;
             }
 
-            if (device) {
+            if (device && device.name && device.name.trim() !== "") {
                 setDevicesMap(prev => ({ ...prev, [device.id]: device }));
             }
         });
@@ -279,7 +289,7 @@ const PrinterScreen: React.FC = () => {
         }
         try {
             setLoading(true);
-            const textBytes = Buffer.from('\n\n\nPrint test 123\n\n\n', 'utf-8');
+            const textBytes = Buffer.from('\n\n\nConnected! Print test 123\n\n\n\n\n\n\n', 'utf-8');
             await sendInChunks(textBytes, connectedDevice, writableChar, currentMTU);
             setModalMessage('Test sent to printer!');
             setIsSuccess(true);

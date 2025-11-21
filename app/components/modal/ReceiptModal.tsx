@@ -46,23 +46,36 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
     useEffect(() => {
         if (!visible) return;
 
-        const tryConnect = async () => {
-            setIsPrinting(true);
+        const connect = async () => {
             try {
+                // Just handle the connection here
                 await connectLastPrinter();
-                if( autoPrint )
-                    await printReceipt();
                 setPrinterReady(true);
-                setIsPrinting(false);
             } catch (e) {
-                console.log("Could not reconnect:", e);
+                console.log("Connection failed:", e);
                 setPrinterReady(false);
-                setIsPrinting(false);
             }
         };
 
-        tryConnect();
+        connect();
     }, [visible]);
+
+    useEffect(() => {
+        if (visible && autoPrint && printerReady) {
+            const doAutoPrint = async () => {
+                setIsPrinting(true);
+                try {
+                    await printReceipt();
+                } catch (e) {
+                    console.log("Auto print failed:", e);
+                } finally {
+                    setIsPrinting(false);
+                }
+            };
+
+            doAutoPrint();
+        }
+    }, [printerReady, autoPrint, visible]);
 
     const formatBetTime = (isoString: string) => {
         const date = new Date(isoString);

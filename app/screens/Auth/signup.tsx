@@ -31,8 +31,6 @@ interface SignInProps {
 }
 
 const SignUp: React.FC<SignInProps> = ({navigation, route }) => {
-    console.log(route.params);
-
     const { GAMING_DOMAIN } = Constants.expoConfig?.extra || {};
 
     const theme = useTheme();
@@ -105,6 +103,17 @@ const SignUp: React.FC<SignInProps> = ({navigation, route }) => {
             setIsSuccess(false);
             setModalVisible(true);
         }
+    };
+
+    const handleMobileChange = (text: string) => {
+        // Remove leading 0
+        if (text.startsWith('0')) {
+            text = text.slice(1);
+        }
+        // Keep only digits and limit to 10
+        text = text.replace(/\D/g, '').slice(0, 10);
+
+        setMobileNumber(text);
     };
 
     useEffect(() => {
@@ -283,16 +292,10 @@ const SignUp: React.FC<SignInProps> = ({navigation, route }) => {
                                         <Text style={{marginLeft: 5, color: COLORS.primary}}>+63</Text>
                                     </View>
                                     <TextInput
-                                        ref={mobileNumberRef}
+                                        value={mobileNumber}  // Controlled input
                                         onFocus={() => setFocusMobileNumber(true)}
                                         onBlur={() => setFocusMobileNumber(false)}
-                                        onChangeText={(text) => {
-                                            if (text.startsWith('0')) {
-                                                text = text.slice(1);
-                                                mobileNumberRef.current?.setNativeProps({ text: text });
-                                            }
-                                            setMobileNumber(text);
-                                        }}
+                                        onChangeText={handleMobileChange}
                                         style={[
                                             styles.input,
                                             {

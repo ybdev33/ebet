@@ -7,19 +7,17 @@ const Drawer = createDrawerNavigator();
 
 const DrawerNavigation = () => {
     return (
-        <>
-            <Drawer.Navigator
-                drawerContent={(props) => <Sidebar {...props} />}
-                screenOptions={{
-                    headerShown : false
-                }}
-            >
-                <Drawer.Screen
-                    name="BottomNavigation"
-                    component={BottomNavigation} 
-                />
-            </Drawer.Navigator>
-        </>
+        <Drawer.Navigator
+            drawerContent={(props) => <Sidebar {...props} />}
+            screenOptions={{
+                headerShown: false,
+            }}
+        >
+            <Drawer.Screen
+                name="BottomNavigation"
+                component={BottomNavigation}
+            />
+        </Drawer.Navigator>
     );
 };
 

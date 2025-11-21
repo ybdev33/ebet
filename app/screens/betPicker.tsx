@@ -202,6 +202,7 @@ const BetPicker: React.FC = (props) => {
         total: 0,
         reference: '',
     });
+    const [autoPrint, setAutoPrint] = useState(false);
 
     const handlePrint = async () => {
         try {
@@ -260,6 +261,8 @@ const BetPicker: React.FC = (props) => {
                 await fetchUserLoad();
                 setShowReceipt(true);
                 setShowBetsModal(false);
+
+                setAutoPrint(true);
 
                 handleClear();
             } else {
@@ -372,64 +375,68 @@ const BetPicker: React.FC = (props) => {
             return (
                 <View style={styles.selectedNumbers}>
                     <Text style={styles.sectionTitle}>You Selected Numbers</Text>
-                    <View style={styles.numberDisplay}>
-                        {selectedNumbers.map((num, index) => {
-                            const isDisabled = index >= getDrawLength();
-                            return (
-                                <View key={index} style={styles.numberWrapper}>
-                                    <TextInput
-                                        ref={(ref) => inputRefs.current[index] = ref}
-                                        style={[
-                                            styles.numberTextInput,
-                                            isDisabled && styles.numberTextInputDisabled,
-                                        ]}
-                                        editable={!isDisabled}
-                                        keyboardType="numeric"
-                                        maxLength={1}
-                                        value={num !== -1 ? num.toString() : ""}
-                                        onChangeText={(text) => {
-                                            const updated = [...selectedNumbers];
-
-                                            if (text === "" || text === "\u200B") {
-                                                updated[index] = -1;
-                                                setSelectedNumbers(updated);
-                                                return;
-                                            }
-
-                                            const n = parseInt(text, 10);
-                                            if (!isNaN(n)) {
-                                                updated[index] = n;
-                                                setSelectedNumbers(updated);
-
-                                                for (let next = index + 1; next < selectedNumbers.length; next++) {
-                                                    if (next < getDrawLength()) {
-                                                        inputRefs.current[next]?.focus();
-                                                        break;
+                    <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+                        <View style={styles.numberDisplay}>
+                            {selectedNumbers.map((num, index) => {
+                                const isDisabled = index >= getDrawLength();
+                                return (
+                                    <View key={index} style={styles.numberWrapper}>
+                                        <TextInput
+                                            ref={(ref) => inputRefs.current[index] = ref}
+                                            style={[styles.numberTextInput, isDisabled && styles.numberTextInputDisabled]}
+                                            editable={!isDisabled}
+                                            keyboardType="numeric"
+                                            maxLength={1}
+                                            value={num !== -1 ? num.toString() : ""}
+                                            onChangeText={(text) => {
+                                                const updated = [...selectedNumbers];
+                                                if (text === "" || text === "\u200B") {
+                                                    updated[index] = -1;
+                                                    setSelectedNumbers(updated);
+                                                    return;
+                                                }
+                                                const n = parseInt(text, 10);
+                                                if (!isNaN(n)) {
+                                                    updated[index] = n;
+                                                    setSelectedNumbers(updated);
+                                                    for (let next = index + 1; next < selectedNumbers.length; next++) {
+                                                        if (next < getDrawLength()) {
+                                                            inputRefs.current[next]?.focus();
+                                                            break;
+                                                        }
                                                     }
                                                 }
-                                            }
-                                        }}
-                                        onKeyPress={({ nativeEvent }) => {
-                                            if (nativeEvent.key === "Backspace" && selectedNumbers[index] === -1) {
-                                                const prevIndex = index - 1;
-                                                if (prevIndex >= 0) {
-                                                    const updated = [...selectedNumbers];
-                                                    updated[prevIndex] = -1;
-                                                    setSelectedNumbers(updated);
-                                                    inputRefs.current[prevIndex]?.focus();
+                                            }}
+                                            onKeyPress={({ nativeEvent }) => {
+                                                if (nativeEvent.key === "Backspace" && selectedNumbers[index] === -1) {
+                                                    const prevIndex = index - 1;
+                                                    if (prevIndex >= 0) {
+                                                        const updated = [...selectedNumbers];
+                                                        updated[prevIndex] = -1;
+                                                        setSelectedNumbers(updated);
+                                                        inputRefs.current[prevIndex]?.focus();
+                                                    }
                                                 }
-                                            }
-                                        }}
-                                        onSubmitEditing={() => {
-                                            targetRef.current?.focus();
-                                        }}
-                                        textAlign="center"
-                                        returnKeyType="next"
-                                    />
-                                    <Text style={[styles.underscore, isDisabled && {color: COLORS.dark}]}>_</Text>
-                                </View>
-                            );
-                        })}
+                                            }}
+                                            onSubmitEditing={() => {
+                                                targetRef.current?.focus();
+                                            }}
+                                            textAlign="center"
+                                            returnKeyType="next"
+                                        />
+                                        <Text style={[styles.underscore, isDisabled && {color: COLORS.dark}]}>_</Text>
+                                    </View>
+                                );
+                            })}
+                        </View>
+
+                        {/* Floating Auto Pick button */}
+                        <TouchableOpacity
+                            style={styles.autoPickButton}
+                            onPress={handleAutoPick}
+                        >
+                            <FeatherIcon name="shuffle" size={24} color={COLORS.warning} />
+                        </TouchableOpacity>
                     </View>
                 </View>
             );
@@ -511,7 +518,7 @@ const BetPicker: React.FC = (props) => {
                         </View>
                     </View>
                     <View style={GlobalStyleSheet.row}>
-                        <View style={[GlobalStyleSheet.col33]}>
+                        <View style={[GlobalStyleSheet.col50]}>
                             <Button
                                 color={COLORS.primaryLight}
                                 textColor={COLORS.text}
@@ -520,16 +527,7 @@ const BetPicker: React.FC = (props) => {
                             />
                         </View>
 
-                        <View style={[GlobalStyleSheet.col33]}>
-                            <Button
-                                color={COLORS.primaryLight}
-                                textColor={COLORS.warning}
-                                title={'Auto Pick'}
-                                onPress={handleAutoPick}
-                            />
-                        </View>
-
-                        <View style={GlobalStyleSheet.col33}>
+                        <View style={GlobalStyleSheet.col50}>
                             <TouchableOpacity
                                 style={[
                                     styles.iconButton,
@@ -580,7 +578,7 @@ const BetPicker: React.FC = (props) => {
                         combinations={receiptData.combinations}
                         total={receiptData.total}
                         reference={receiptData.reference}
-                        autoPrint={true}
+                        autoPrint={autoPrint}
                     />
 
                     <Modal
@@ -717,7 +715,7 @@ const styles = StyleSheet.create({
     numberDisplay: {
         flexDirection: "row",
         justifyContent: "space-evenly",
-        width: "100%",
+        width: "82%",
         flexWrap: "nowrap",
     },
     numberWrapper: {
@@ -810,6 +808,17 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    autoPickButton: {
+        position: 'absolute',
+        right: '-8%',
+        top: '20%',
+        transform: [{ translateY: -12 }], // vertically center
+        padding: 5,
+        borderRadius: 6,
+        backgroundColor: COLORS.dark,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 });
 
