@@ -126,6 +126,22 @@ function Sidebar({ navigation }) {
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={styles.navItem}
+                    onPress={() => navigation.navigate('printerScreen')}
+                >
+                    <Image
+                        source={ICONS.qr}
+                        style={{
+                            height:18,
+                            width:18,
+                            tintColor:colors.text,
+                            marginRight:12,
+                        }}
+                    />
+                    <Text style={{...FONTS.font,...FONTS.fontMedium,color:colors.title,flex:1}}>Printer</Text>
+                    <FeatherIcon size={16} color={colors.text} name={'chevron-right'}/>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.navItem}
                     onPress={() => navigation.navigate('signin')}
                 >
                     <Image

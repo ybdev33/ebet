@@ -55,7 +55,7 @@ const BalanceWidgets = ({dashData}) => {
                 id: "3",
                 pic: ICONS.pesocom,
                 title: "Total Commission",
-                balance: `${dashData.totalCommision}`,
+                balance: `${dashData.totalCommission}`,
                 status: "commission",
                 navigate: 'commissions'
             },

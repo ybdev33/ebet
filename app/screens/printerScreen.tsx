@@ -145,17 +145,20 @@ const PrinterScreen: React.FC = () => {
         }
     };
 
-    const disconnectDevice = async () => {
+    const disconnectDevice = async (): Promise<void> => {
         if (!connectedDevice) return;
+
         try {
+            setLoading(true); // show loading during disconnect
             await connectedDevice.cancelConnection();
         } catch (e: any) {
-            // ignore
+            console.log("Disconnect error:", e);
         } finally {
             setConnectedDevice(null);
             setWritableChar(null);
-            AsyncStorage.removeItem("lastConnectedDevice");
+            await AsyncStorage.removeItem("lastConnectedDevice");
             startScan();
+            setLoading(false); // hide loading after disconnect
         }
     };
 
@@ -252,11 +255,13 @@ const PrinterScreen: React.FC = () => {
         await AsyncStorage.setItem("bluetoothEnabled", JSON.stringify(value));
 
         if (!value) {
-            AsyncStorage.removeItem("lastConnectedDevice");
+            // Wait for disconnect to fully complete before proceeding
             await disconnectDevice();
-        }
-        else
+            // Now you can safely navigate or do other actions here
+            // e.g., navigation.navigate('HomeScreen');
+        } else {
             startScan();
+        }
     };
 
     const renderSignal = (rssi?: number) => {
@@ -393,7 +398,7 @@ const PrinterScreen: React.FC = () => {
                         </View>
                         <View style={{ width: 160 }}>
                             <TouchableOpacity style={{ backgroundColor: COLORS.primary, paddingVertical: 12, borderRadius: 8, alignItems: 'center', marginBottom: 8 }} onPress={printTest} disabled={loading}>
-                                {loading ? <ActivityIndicator color={COLORS.primary}/> : <Text style={[FONTS.h6, {...FONTS.fontMedium, color:COLORS.white}]}>Print Test</Text>}
+                                {loading ? <ActivityIndicator color={COLORS.white}/> : <Text style={[FONTS.h6, {...FONTS.fontMedium, color:COLORS.white}]}>Print Test</Text>}
                             </TouchableOpacity>
                             <TouchableOpacity style={{ borderWidth: 1, borderColor: colors.border, paddingVertical: 10, borderRadius: 8, alignItems: 'center', backgroundColor: COLORS.dark }} onPress={disconnectDevice}>
                                 <Text style={[FONTS.h6, {...FONTS.fontMedium, color: COLORS.darkText }]}>Disconnect</Text>

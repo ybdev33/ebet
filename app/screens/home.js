@@ -63,20 +63,26 @@ const Home = () => {
                     const fetchTotalDash = async () => {
                         try {
                             const today = new Date();
-                            const formattedDate = today.toLocaleDateString('en-GB').split('/').join('-');
+                            const formattedDate = today.toISOString().split('T')[0];
 
-                            const response = await fetch(`${GAMING_DOMAIN}/api/Common/GetDashBoardDetails?authorId=${userId}&date==${formattedDate}`, {
-                                method: 'GET',
+                            const body = JSON.stringify({
+                                authorId: userId,
+                                dateFrom: formattedDate,
+                                dateTo: formattedDate,
+                            });
+
+                            const response = await fetch(`${GAMING_DOMAIN}/api/Admin/GetDashBoardDetails`, {
+                                method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
-                                }
+                                    // Authorization: 'Settings a2luZ3MzOiF0ZXJ5U3dldGk=',
+                                },
+                                body: body
                             });
 
                             const result = await response.json();
 
                             if (response.ok && isActive) {
-                                console.log("result", result);
-                                console.log(`${GAMING_DOMAIN}/api/Common/GetDashBoardDetails?authorId=${userId}&date==${formattedDate}`);
                                 setDashData(result.data);
                             }
                         } catch (error) {

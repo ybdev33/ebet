@@ -32,7 +32,7 @@ const DrawResult: React.FC<DrawResultProps> = ({dashData}) => {
     const theme = useTheme();
 
     return (
-        <View style={{paddingBottom: 70}}>
+        <View style={{paddingBottom: 100}}>
             <Text style={{...FONTS.h6, color:colors.title, padding: 15}}>Draw Result</Text>
 
             <ScrollView horizontal showsHorizontalScrollIndicator={true}>
@@ -41,8 +41,8 @@ const DrawResult: React.FC<DrawResultProps> = ({dashData}) => {
                         <Text style={[styles.headerCell, {flex: 1, minWidth: 90}]}>Draw</Text>
                         <Text style={[styles.headerCell, {flex: 1, minWidth: 60}]}>Gross</Text>
                         <Text style={[styles.headerCell, {flex: 1, minWidth: 50}]}>Hits</Text>
-                        <Text style={[styles.headerCell, {flex: 1, minWidth: 50}]}>Net</Text>
                         <Text style={[styles.headerCell, {flex: 1, minWidth: 80}]}>Comm</Text>
+                        <Text style={[styles.headerCell, {flex: 1, minWidth: 50}]}>Net</Text>
                         <Text style={[styles.headerCell, {flex: 2, minWidth: 150, marginLeft: 15, textAlign: "left"}]}>Result</Text>
                     </View>
 
@@ -63,8 +63,8 @@ const DrawResult: React.FC<DrawResultProps> = ({dashData}) => {
 
                                     <Text style={[styles.cell, {flex: 1, minWidth: 60}]}>{data.gross}</Text>
                                     <Text style={[styles.cell, {flex: 1, minWidth: 50}]}>{data.hits}</Text>
-                                    <Text style={[styles.cell, {flex: 1, minWidth: 50}]}>{data.net}</Text>
                                     <Text style={[styles.cell, {flex: 1, minWidth: 80}]}>{data.commission}</Text>
+                                    <Text style={[styles.cell, {flex: 1, minWidth: 50}]}>{data.net}</Text>
 
                                     <View style={[styles.amountInfo, {flex: 2, minWidth: 150}]}>
                                         {isGrandTotal ? (
@@ -124,11 +124,12 @@ const styles = StyleSheet.create({
         marginVertical: 4,
     },
     headerCell: {
-        fontWeight: 'bold',
+        ...FONTS.fontSm,
         color: COLORS.text,
         textAlign: 'center',
     },
     cell: {
+        ...FONTS.fontSm,
         color: COLORS.text,
         textAlign: 'center',
     },
@@ -137,7 +138,7 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     categoryText: {
-        fontWeight: 'bold',
+        ...FONTS.fontSm,
         color: COLORS.primary,
         textAlign: 'center',
     },
@@ -156,9 +157,9 @@ const styles = StyleSheet.create({
         marginHorizontal: 2,
     },
     digitText: {
+        ...FONTS.h6,
         color: COLORS.dark,
-        fontWeight: 'bold',
-        fontSize: 12,
+        fontSize: 15,
     },
     amountInfo: {
         marginLeft: 15,
