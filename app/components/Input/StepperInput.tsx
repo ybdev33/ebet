@@ -12,7 +12,7 @@ import {
     FlatList
 } from 'react-native';
 import FeatherIcon from "react-native-vector-icons/Feather";
-import { COLORS } from "@/app/constants/theme";
+import { COLORS, FONTS } from "@/app/constants/theme";
 
 interface StepperInputProps {
     label: string;
@@ -122,12 +122,11 @@ const styles = StyleSheet.create({
         height: 44,
     },
     betText: {
+        ...FONTS.h6,
         color: COLORS.text,
-        fontSize: 16,
-        fontWeight: "bold",
     },
     betInput: {
-        fontSize: 16,
+        ...FONTS.h6,
         color: COLORS.white,
         textAlign: "center",
         backgroundColor: "rgba(255,255,255,0.1)",

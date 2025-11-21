@@ -59,7 +59,7 @@ export const generateReceiptText = ({
     receipt += CENTER;
     receipt += ESC + "E" + "\x00";        // bold off
     receipt += ESC + "!" + "\x00";        // normal font size
-    receipt += appName + "\n";
+    receipt += appName + "\n\n";
 
     // Center official text - medium, bold
     receipt += CENTER;
@@ -74,16 +74,16 @@ export const generateReceiptText = ({
     receipt += "Bet Time: " + betTime + "\n";
 
     receipt += LEFT + "\n";
-    receipt += LEFT + "Bet      Amt      Draw    Win\n";
+    receipt += LEFT + "Bet      Amount   Draw   Win\n";
     receipt += LEFT + "-".repeat(32) + "\n";
 
     // Table rows
     items.forEach(item => {
         // Adjust padding to match header
-        const label = item.label.padEnd(9, ' ');
-        const amount = ("P" + item.amount).padStart(2, ' ');
-        const draw = item.draw.padStart(10, ' ');
-        const win = ("P" + item.win).padStart(8, ' ');
+        const label = item.label.padEnd(11, ' ');
+        const amount = ("P" + item.amount).padEnd(7, ' ');
+        const draw = item.draw.padEnd(5, ' ');
+        const win = ("P" + item.win).padStart(6, ' ');
 
         receipt += LEFT + `${label}${amount}${draw}${win}\n`;
     });

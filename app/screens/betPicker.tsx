@@ -254,7 +254,7 @@ const BetPicker: React.FC = (props) => {
                     betTime: result.data.dateTimeServer,
                     combinations,
                     total: result.data.totalAmount,
-                    reference: result.data.transCode,
+                    reference: result.data.transCode
                 });
 
                 await fetchUserLoad();
@@ -481,6 +481,13 @@ const BetPicker: React.FC = (props) => {
                                         handleBet();
                                     }
                                 }}
+                                style={{
+                                    container: { marginVertical: 8 },
+                                    label: { ...FONTS.h6 },
+                                    value: { ...FONTS.h6 },
+                                    button: { backgroundColor: COLORS.primaryLight, paddingVertical: 5, paddingHorizontal: 10 },
+                                    buttonText: { ...FONTS.h6 }
+                                }}
                             />
                         </View>
 
@@ -573,6 +580,7 @@ const BetPicker: React.FC = (props) => {
                         combinations={receiptData.combinations}
                         total={receiptData.total}
                         reference={receiptData.reference}
+                        autoPrint={true}
                     />
 
                     <Modal
@@ -692,6 +700,7 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.primary,
     },
     gridCellText: {
+        ...FONTS.h6,
         color: COLORS.white,
     },
     selectedNumbers: {
@@ -699,6 +708,7 @@ const styles = StyleSheet.create({
         marginBottom: 5,
     },
     sectionTitle: {
+        ...FONTS.h6,
         color: COLORS.dark,
         textAlign: "center",
         fontSize: 13,
@@ -722,11 +732,12 @@ const styles = StyleSheet.create({
         width: 24
     },
     underscore: {
+        ...FONTS.h6,
         color: COLORS.text,
         fontSize: 27,
         fontWeight: "bold",
         textAlign: "center",
-        marginTop: -27,
+        marginTop: -22,
         paddingBottom: 10,
     },
     gridCellDisabled: {
@@ -776,22 +787,19 @@ const styles = StyleSheet.create({
     icon: {
     },
     buttonText: {
+        ...FONTS.h6,
         color: COLORS.title,
-        fontWeight: 'bold',
-        fontSize: 16,
         marginRight: 5,
-        paddingVertical: 1,
+        paddingVertical: 2,
     },
     numberTextInput: {
+        ...FONTS.h5,
         width: 30,
         height: 27,
-        fontSize: 27,
-        fontWeight: 'bold',
         color: COLORS.success,
         textAlign: 'center',
         paddingVertical: 0,
         paddingHorizontal: 0,
-        lineHeight: 27,
     },
     numberTextInputDisabled: {
         fontSize: 27,

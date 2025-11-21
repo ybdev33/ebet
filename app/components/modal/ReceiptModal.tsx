@@ -26,6 +26,7 @@ interface ReceiptModalProps {
     combinations: Combination[];
     total: number;
     reference: string;
+    autoPrint?: boolean;
 }
 
 const ReceiptModal: React.FC<ReceiptModalProps> = ({
@@ -36,6 +37,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
                                                        combinations,
                                                        total,
                                                        reference,
+                                                       autoPrint = false
                                                    }) => {
     const { connectLastPrinter, printBuffer, connectedDevice } = usePrinter();
     const [printerReady, setPrinterReady] = useState(false);
@@ -48,6 +50,8 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
             setIsPrinting(true);
             try {
                 await connectLastPrinter();
+                if( autoPrint )
+                    await printReceipt();
                 setPrinterReady(true);
                 setIsPrinting(false);
             } catch (e) {
@@ -134,7 +138,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
                             <View style={styles.table}>
 
                                 <View style={[styles.row, styles.headerRow]}>
-                                    <Text style={[styles.cell, styles.headerCell]}>Combination</Text>
+                                    <Text style={[styles.cell, styles.headerCell]}>Bet</Text>
                                     <Text style={[styles.cell, styles.headerCell]}>Amount</Text>
                                     <Text style={[styles.cell, styles.headerCell]}>Draw</Text>
                                     <Text style={[styles.cell, styles.headerCell]}>Win</Text>
@@ -224,27 +228,30 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     header: {
-        fontWeight: 'bold',
-        fontSize: 16,
+        ...FONTS.fontMedium,
         color: '#222',
     },
     subHeader: {
+        ...FONTS.fontMedium,
         fontSize: 13,
+        marginTop: -5,
         marginBottom: 5,
         color: '#666',
     },
     receiptLabel: {
-        fontWeight: 'bold',
+        ...FONTS.fontMedium,
         fontSize: 16,
         marginBottom: 10,
     },
     info: {
-        fontSize: 12,
+        ...FONTS.fontMedium,
+        fontSize: 13,
         alignSelf: 'flex-start',
         marginBottom: 4,
         color: '#444',
     },
     table: {
+        ...FONTS.fontMedium,
         marginTop: 10,
         width: '100%',
         borderTopWidth: 1,
@@ -258,6 +265,7 @@ const styles = StyleSheet.create({
         paddingVertical: 4,
     },
     cell: {
+        ...FONTS.fontMedium,
         fontSize: 13,
         width: '23%',
         textAlign: 'center',
@@ -266,12 +274,12 @@ const styles = StyleSheet.create({
         borderColor: '#ccc',
     },
     headerCell: {
-        fontWeight: 'bold',
+        ...FONTS.fontSm,
         color: '#222',
     },
     total: {
+        ...FONTS.fontMedium,
         marginTop: 10,
-        fontWeight: 'bold',
         fontSize: 15,
         color: '#222',
         alignSelf: 'flex-start',
@@ -281,13 +289,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     reference: {
+        ...FONTS.fontMedium,
         fontSize: 11,
         marginTop: 5,
         color: '#666',
     },
     referenceValue: {
+        ...FONTS.fontMedium,
         fontSize: 13,
-        fontWeight: 'bold',
     },
     printButton: {
         position: 'absolute',
