@@ -46,21 +46,11 @@ export function usePrinter() {
         await sendInChunks(buffer, connectedDevice, writableChar, mtu);
     };
 
-    const isConnected = async (): Promise<boolean> => {
-        if (!connectedDevice) return false;
-        try {
-            return await connectedDevice.isConnected();
-        } catch (e) {
-            return false;
-        }
-    };
-
     return {
         connectLastPrinter,
         printBuffer,
         connectedDevice,
         writableChar,
-        mtu,
-        isConnected,
+        mtu
     };
 }

@@ -231,7 +231,7 @@ const PrinterScreen: React.FC = () => {
             setIsSuccess(false);
             setModalVisible(true);
 
-            disconnectDevice();
+            await disconnectDevice();
         } finally {
             setLoading(false);
         }
@@ -252,18 +252,11 @@ const PrinterScreen: React.FC = () => {
         await AsyncStorage.setItem("bluetoothEnabled", JSON.stringify(value));
 
         if (!value) {
-            try {
-                await disconnectDevice();
-            } catch (e) {
-                console.log("Error disconnecting device:", e);
-            } finally {
-                stopScan();
-                setDevicesMap({});
-            }
-            return;
+            AsyncStorage.removeItem("lastConnectedDevice");
+            await disconnectDevice();
         }
-
-        startScan();
+        else
+            startScan();
     };
 
     const renderSignal = (rssi?: number) => {

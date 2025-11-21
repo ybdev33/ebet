@@ -3,6 +3,7 @@ import { Modal, View, Text, StyleSheet, Image, ScrollView, ImageBackground, Touc
 import QRCode from 'react-native-qrcode-svg';
 import { COLORS, IMAGES, FONTS } from '../../constants/theme';
 import Constants from "expo-constants";
+import { ActivityIndicator } from "react-native";
 
 import { generateReceiptText, splitChunks, escPosQR, escposImageFromBase64RN } from '../../printer/ReceiptPrinter';
 import { usePrinter } from "../../printer/usePrinter";
@@ -36,7 +37,28 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
                                                        total,
                                                        reference,
                                                    }) => {
-    const { connectLastPrinter, printBuffer } = usePrinter();
+    const { connectLastPrinter, printBuffer, connectedDevice } = usePrinter();
+    const [printerReady, setPrinterReady] = useState(false);
+    const [isPrinting, setIsPrinting] = useState(true);
+
+    useEffect(() => {
+        if (!visible) return;
+
+        const tryConnect = async () => {
+            setIsPrinting(true);
+            try {
+                await connectLastPrinter();
+                setPrinterReady(true);
+                setIsPrinting(false);
+            } catch (e) {
+                console.log("Could not reconnect:", e);
+                setPrinterReady(false);
+                setIsPrinting(false);
+            }
+        };
+
+        tryConnect();
+    }, [visible]);
 
     const formatBetTime = (isoString: string) => {
         const date = new Date(isoString);
@@ -53,8 +75,6 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
 
     const printReceipt = async () => {
         try {
-            await connectLastPrinter(); // auto reconnect to last printer
-
             const logo = escposImageFromBase64RN(logoBase64, 384);
 
             const items = combinations.map(c => ({
@@ -65,7 +85,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
             }));
 
             const receiptText = generateReceiptText({
-                header: "Philippines Online Sweepstakes",
+                header: "Philippine Online Sweepstakes",
                 appName: "eBet",
                 officialText: "OFFICIAL RECEIPT",
                 betTime: formatBetTime(betTime),
@@ -139,11 +159,22 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
                             </View>
 
                             <TouchableOpacity
-                                onPress={printReceipt}
-                                style={styles.printButton}
-                                style={[styles.printButton]}
+                                onPress={async () => {
+                                    setIsPrinting(true);
+                                    await printReceipt();
+                                    setIsPrinting(false);
+                                }}
+                                style={[
+                                    styles.printButton,
+                                    (!printerReady || isPrinting) && { opacity: 0.4 }
+                                ]}
+                                disabled={!printerReady || isPrinting}
                             >
-                                <Text style={[FONTS.h6, {color:COLORS.white}]}>Print 🖨️</Text>
+                                {isPrinting ? (
+                                    <ActivityIndicator size="small" color="#fff" />
+                                ) : (
+                                    <Text style={[FONTS.h6, { color: COLORS.white }]}>Print 🖨️</Text>
+                                )}
                             </TouchableOpacity>
                         </View>
                     </View>
