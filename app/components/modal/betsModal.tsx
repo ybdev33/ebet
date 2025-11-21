@@ -97,10 +97,10 @@ const BetsModal: React.FC<BetsModalProps> = ({ visible, onClose, data, navigate,
                                         minWidth: 150,
                                     }}
                                 >
-                                    Combination
+                                    Bet
                                 </Text>
                                 <Text numberOfLines={1} style={{ color: colors.text, ...styles.tableItemHead }}>Amount</Text>
-                                <View style={{ alignItems: 'flex-end' }}>
+                                <View style={{ alignItems: 'flex-end', marginRight: 10 }}>
                                     <Text style={{ ...FONTS.font, ...FONTS.fontMedium, color: colors.text }}>Draw</Text>
                                 </View>
                             </View>
@@ -182,8 +182,8 @@ const styles = StyleSheet.create({
     icon: {
     },
     buttonText: {
+        ...FONTS.h6,
         color: COLORS.title,
-        fontWeight: 'bold',
         fontSize: 16,
         marginRight: 5,
         paddingVertical: 1,

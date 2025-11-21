@@ -19,6 +19,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BleManager, Device, Characteristic, BleError } from 'react-native-ble-plx';
 import { Buffer } from 'buffer';
 import { useTheme, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { FONTS, COLORS } from '../constants/theme';
 import SuccessModal from '../components/modal/SuccessModal';
 import { sendInChunks } from '../printer/printerUtils';
@@ -51,6 +52,8 @@ const PrinterScreen: React.FC = () => {
 
     // Animation
     const scanAnim = useRef(new Animated.Value(0)).current;
+
+    const navigation = useNavigation();
 
     // ------------------- EFFECTS -------------------
     useEffect(() => {
@@ -98,9 +101,21 @@ const PrinterScreen: React.FC = () => {
 
     useFocusEffect(
         React.useCallback(() => {
-            const onBack = () => connecting || disconnecting || loading;
-            const sub = BackHandler.addEventListener('hardwareBackPress', onBack);
-            return () => sub.remove();
+            const onBackPress = () => {
+                // Block back if busy
+                if (connecting || disconnecting || loading) return true;
+
+                navigation.navigate('drawernavigation', {
+                    screen: 'BottomNavigation',
+                    params: { screen: 'Profile' },
+                })
+
+                return true; // handled
+            };
+
+            const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+            return () => subscription.remove();
         }, [connecting, disconnecting, loading])
     );
 

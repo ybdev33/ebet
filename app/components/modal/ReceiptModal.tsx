@@ -48,12 +48,12 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
 
         const connect = async () => {
             try {
-                // Just handle the connection here
                 await connectLastPrinter();
                 setPrinterReady(true);
             } catch (e) {
                 console.log("Connection failed:", e);
                 setPrinterReady(false);
+                setIsPrinting(false);
             }
         };
 
@@ -90,7 +90,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
         return `${year}-${month}-${day} ${hours}:${minutes}`;
     };
 
-    const printReceipt = async () => {
+    const printReceipt = async (retryCount = 0) => {
         try {
             const logo = escposImageFromBase64RN(logoBase64, 384);
 
@@ -126,8 +126,18 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
 
             await printBuffer(finalBuffer);
         } catch (e) {
-            console.log("Print error", e);
-            alert("Failed to print receipt");
+            console.log(`Print attempt ${retryCount + 1} failed:`, e);
+
+            const MAX_RETRIES = 1;
+            const RETRY_DELAY_MS = 1000;
+
+            if (retryCount < MAX_RETRIES) {
+                console.log(`Retrying in ${RETRY_DELAY_MS / 1000} seconds...`);
+                await new Promise(res => setTimeout(res, RETRY_DELAY_MS));
+                await printReceipt(retryCount + 1); // retry
+            } else {
+                alert("Failed to print receipt after multiple attempts");
+            }
         }
     };
 

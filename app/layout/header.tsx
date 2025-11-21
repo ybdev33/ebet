@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
-import { useNavigation, useTheme } from '@react-navigation/native';
+import { useNavigation, useTheme, DrawerActions } from '@react-navigation/native';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import { FONTS } from '../constants/theme';
 import { GlobalStyleSheet } from '../constants/styleSheet';
@@ -8,13 +8,29 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 type HeaderBarProps = {
     title: string;
-    leftIcon?: 'back'; // Expand this if there are other icon types
+    leftIcon?: 'back' | 'menu'; // add 'menu' for drawer toggle
     onPressLeft?: () => void;
 };
 
 const HeaderBar: React.FC<HeaderBarProps> = ({ title, leftIcon, onPressLeft }) => {
     const { colors } = useTheme();
     const navigation = useNavigation<NativeStackNavigationProp<any>>();
+
+    // Handle back or menu action safely
+    const handleLeftPress = () => {
+        if (onPressLeft) {
+            onPressLeft();
+        } else if (leftIcon === 'menu') {
+            navigation.dispatch(DrawerActions.toggleDrawer());
+        } else if (navigation.canGoBack()) {
+            navigation.goBack();
+        } else {
+            navigation.navigate('drawernavigation', {
+                screen: 'BottomNavigation',
+                params: { screen: 'Home' },
+            });
+        }
+    };
 
     return (
         <View
@@ -40,9 +56,9 @@ const HeaderBar: React.FC<HeaderBarProps> = ({ title, leftIcon, onPressLeft }) =
                 ]}
             >
                 <View style={{ height: 48, width: 48 }}>
-                    {leftIcon === 'back' && (
+                    {leftIcon && (
                         <TouchableOpacity
-                            onPress={onPressLeft ? onPressLeft : () => navigation.goBack()}
+                            onPress={handleLeftPress}
                             style={{
                                 height: '100%',
                                 width: '100%',
@@ -50,10 +66,15 @@ const HeaderBar: React.FC<HeaderBarProps> = ({ title, leftIcon, onPressLeft }) =
                                 justifyContent: 'center',
                             }}
                         >
-                            <FeatherIcon name="arrow-left" size={22} color={colors.title} />
+                            <FeatherIcon
+                                name={leftIcon === 'back' ? 'arrow-left' : 'menu'}
+                                size={22}
+                                color={colors.title}
+                            />
                         </TouchableOpacity>
                     )}
                 </View>
+
                 <Text
                     style={{
                         flex: 1,
@@ -65,6 +86,7 @@ const HeaderBar: React.FC<HeaderBarProps> = ({ title, leftIcon, onPressLeft }) =
                 >
                     {title}
                 </Text>
+
                 <View style={{ height: 48, width: 48 }} />
             </View>
         </View>

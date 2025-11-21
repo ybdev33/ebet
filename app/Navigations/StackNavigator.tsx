@@ -27,7 +27,6 @@ const StackNavigator = () => {
             const session = await getSession('userSession');
             if (session) {
                 const lastRoute = await AsyncStorage.getItem('lastRoute');
-                console.log("lastRoute", lastRoute);
                 setInitialRoute(lastRoute || 'drawernavigation');
             } else {
                 setInitialRoute('signin');
