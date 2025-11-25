@@ -201,18 +201,19 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
 
                             <View style={styles.table}>
                                 <View style={[styles.row, styles.headerRow]}>
-                                    <Text style={[styles.cell, styles.headerCell]}>Bet</Text>
-                                    <Text style={[styles.cell, styles.headerCell]}>Amount</Text>
-                                    <Text style={[styles.cell, styles.headerCell, {marginRight: '10px'}]}>Draw</Text>
-                                    <Text style={[styles.cell, styles.headerCell]}>Win</Text>
+                                    <Text style={[styles.cell, styles.headerCell, styles.betCell]}>Bet</Text>
+                                    <Text style={[styles.cell, styles.headerCell, styles.amountCell]}>Amount</Text>
+                                    <Text style={[styles.cell, styles.headerCell, styles.drawCell]}>Draw</Text>
+                                    <Text style={[styles.cell, styles.headerCell, styles.winCell]}>Win</Text>
                                 </View>
 
                                 {combinations.map((combo, index) => (
                                     <View key={index} style={styles.row}>
-                                        <Text style={styles.cell}>{combo.label}</Text>
-                                        <Text style={styles.cell}>₱{combo.amount}</Text>
-                                        <Text style={styles.cell}>{combo.draw}</Text>
-                                        <Text style={styles.cell}>₱{combo.win}</Text>
+
+                                        <Text style={[styles.cell, styles.betCell]}>{combo.label}</Text>
+                                        <Text style={[styles.cell, styles.amountCell]}>₱{combo.amount}</Text>
+                                        <Text style={[styles.cell, styles.drawCell]}>{combo.draw}</Text>
+                                        <Text style={[styles.cell, styles.winCell]}>₱{combo.win}</Text>
                                     </View>
                                 ))}
                             </View>
@@ -341,15 +342,30 @@ const styles = StyleSheet.create({
         paddingVertical: 4,
     },
     cell: {
-        ...FONTS.fontMedium,
+        ...FONTS.fontSm,
         fontSize: 13,
+    },
+    betCell: {
+        width: '25%',
         textAlign: 'left',
+    },
+    amountCell: {
+        width: '30%',
+        textAlign: 'center',
+    },
+    drawCell: {
+        width: '20%',
+        textAlign: 'center',
+    },
+    winCell: {
+        width: '25%',
+        textAlign: 'right',
     },
     headerRow: {
         borderColor: '#ccc',
     },
     headerCell: {
-        ...FONTS.fontSm,
+        ...FONTS.font,
         color: '#222',
         fontWeight: 'bold',
     },
