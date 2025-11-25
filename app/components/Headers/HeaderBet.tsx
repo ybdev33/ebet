@@ -17,7 +17,7 @@ const HeaderBet: React.FC<HeaderBetProps> = ({ amount, pay, betCount, onPressVie
     return (
         <View style={styles.container}>
             <View style={styles.leftSection}>
-                <Text style={[styles.sectionLabel, {color: COLORS.light, fontSize: SIZES.h5}]}>Bet</Text>
+                <Text style={[styles.sectionLabel, {color: COLORS.text, fontSize: SIZES.h5}]}>Bet</Text>
             </View>
 
             <View style={styles.middleSection}>
@@ -35,7 +35,7 @@ const HeaderBet: React.FC<HeaderBetProps> = ({ amount, pay, betCount, onPressVie
                 onPress={onPressViewAll}
                 style={styles.cartButton}
             >
-                <FeatherIcon name="shopping-cart" size={20} color={COLORS.white} />
+                <FeatherIcon name="shopping-cart" size={20} color={COLORS.text} />
                 <Text style={styles.betCount}>{betCount}</Text>
             </TouchableOpacity>
         </View>

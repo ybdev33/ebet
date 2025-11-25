@@ -102,8 +102,10 @@ const PrinterScreen: React.FC = () => {
     useFocusEffect(
         React.useCallback(() => {
             const onBackPress = () => {
-                // Block back if busy
-                if (connecting || disconnecting || loading) return true;
+                console.log('Back Press Check - Busy:', connecting || disconnecting || loading);
+                if (connecting || disconnecting || loading) {
+                    return true;
+                }
 
                 navigation.navigate('drawernavigation', {
                     screen: 'BottomNavigation',
@@ -304,7 +306,7 @@ const PrinterScreen: React.FC = () => {
         }
         try {
             setLoading(true);
-            const textBytes = Buffer.from('\n\n\nConnected! Print test 123\n\n\n\n\n\n\n', 'utf-8');
+            const textBytes = Buffer.from('\n\n\nConnected! Print test 123\n\n\n\n', 'utf-8');
             await sendInChunks(textBytes, connectedDevice, writableChar, currentMTU);
             setModalMessage('Test sent to printer!');
             setIsSuccess(true);
@@ -380,7 +382,7 @@ const PrinterScreen: React.FC = () => {
                         <Text style={FONTS.fontMedium}>🖨️</Text>
                     </View>
                     <View style={{ marginLeft: 12, flex: 1 }}>
-                        <Text style={[FONTS.fontMedium, { color: COLORS.light }]} numberOfLines={1}>
+                        <Text style={[FONTS.h6, { color: COLORS.text }]} numberOfLines={1}>
                             {item.name || 'Unknown Device'}
                         </Text>
                         <Text style={[FONTS.fontXs, { color: colors.text, fontWeight: '500' }]} numberOfLines={1}>
@@ -528,7 +530,7 @@ const styles = StyleSheet.create({
     quickItemRight: { flexDirection: 'row', alignItems: 'center' },
     scanPulse: { width: 10, height: 10, borderRadius: 10, marginRight: 10 },
     scanBtnSmall: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 },
-    deviceRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, paddingHorizontal: 16, borderBottomWidth: 1 },
+    deviceRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, paddingHorizontal: 16 },
     leftCol: { flexDirection: 'row', alignItems: 'center', flex: 1 },
     deviceIcon: { width: 44, height: 44, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
     rightCol: { alignItems: 'flex-end', justifyContent: 'center' },

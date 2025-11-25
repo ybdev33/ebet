@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View, Platform } from 'react-native';
 import { useNavigation, useTheme } from '@react-navigation/native';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import { COLORS, FONTS, ICONS, IMAGES } from '../constants/theme';
@@ -124,22 +124,24 @@ function Sidebar({ navigation }) {
                     <Text style={{...FONTS.font,...FONTS.fontMedium,color:colors.title,flex:1}}>Account</Text>
                     <FeatherIcon size={16} color={colors.text} name={'chevron-right'}/>
                 </TouchableOpacity>
-                <TouchableOpacity
-                    style={styles.navItem}
-                    onPress={() => navigation.navigate('printerScreen')}
-                >
-                    <Image
-                        source={ICONS.qr}
-                        style={{
-                            height:18,
-                            width:18,
-                            tintColor:colors.text,
-                            marginRight:12,
-                        }}
-                    />
-                    <Text style={{...FONTS.font,...FONTS.fontMedium,color:colors.title,flex:1}}>Printer</Text>
-                    <FeatherIcon size={16} color={colors.text} name={'chevron-right'}/>
-                </TouchableOpacity>
+                {Platform.OS !== "web" && (
+                    <TouchableOpacity
+                        style={styles.navItem}
+                        onPress={() => navigation.navigate('printerScreen')}
+                    >
+                        <Image
+                            source={ICONS.qr}
+                            style={{
+                                height:18,
+                                width:18,
+                                tintColor:colors.text,
+                                marginRight:12,
+                            }}
+                        />
+                        <Text style={{...FONTS.font,...FONTS.fontMedium,color:colors.title,flex:1}}>Printer</Text>
+                        <FeatherIcon size={16} color={colors.text} name={'chevron-right'}/>
+                    </TouchableOpacity>
+                )}
                 <TouchableOpacity
                     style={styles.navItem}
                     onPress={() => navigation.navigate('signin')}

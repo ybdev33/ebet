@@ -375,7 +375,7 @@ const BetPicker: React.FC = (props) => {
             return (
                 <View style={styles.selectedNumbers}>
                     <Text style={styles.sectionTitle}>You Selected Numbers</Text>
-                    <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', position: 'relative', width: '100%' }}>
                         <View style={styles.numberDisplay}>
                             {selectedNumbers.map((num, index) => {
                                 const isDisabled = index >= getDrawLength();
@@ -435,7 +435,7 @@ const BetPicker: React.FC = (props) => {
                             style={styles.autoPickButton}
                             onPress={handleAutoPick}
                         >
-                            <FeatherIcon name="shuffle" size={24} color={COLORS.warning} />
+                            <FeatherIcon name="shuffle" size={24} color={COLORS.dark} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -811,12 +811,12 @@ const styles = StyleSheet.create({
     },
     autoPickButton: {
         position: 'absolute',
-        right: '-8%',
+        right: 0,
         top: '20%',
         transform: [{ translateY: -12 }], // vertically center
         padding: 5,
-        borderRadius: 6,
-        backgroundColor: COLORS.dark,
+        borderRadius: "100%",
+        backgroundColor: COLORS.warning,
         justifyContent: 'center',
         alignItems: 'center',
     },

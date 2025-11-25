@@ -1,21 +1,19 @@
 import React, {useEffect, useState} from 'react'
-import { 
-    View, 
+import {
+    View,
     Text ,
     ScrollView,
     ImageBackground,
     Image,
     TouchableOpacity,
-    PermissionsAndroid,
     Platform,
 } from 'react-native'
 import { useTheme } from '@react-navigation/native';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import HeaderBar from '../layout/header';
 import { COLORS, FONTS, ICONS, IMAGES, SIZES } from '../constants/theme';
-import { launchImageLibrary } from 'react-native-image-picker';
 import { GlobalStyleSheet } from '../constants/styleSheet';
-import {getSession} from "../helpers/sessionHelper";
+import { getSession } from "../helpers/sessionHelper";
 
 const Profile = ({navigation}) => {
 
@@ -49,7 +47,12 @@ const Profile = ({navigation}) => {
             title : "Logout",
             navigate : "signin",
         },
-    ]
+    ];
+
+    const filteredLinks = navLinks.filter(link => {
+        if (link.title === "Printer" && Platform.OS === "web") return false;
+        return true;
+    });
 
     useEffect(() => {
         (async () => {
@@ -122,7 +125,9 @@ const Profile = ({navigation}) => {
                             </TouchableOpacity>
                         </View>
                         <View>
-                            <Text style={{...FONTS.h6,color:COLORS.white,marginBottom:7}}>{userSession?.data?.completeName || "Loading..."}</Text>
+                            <Text style={{...FONTS.h6,color:COLORS.white,marginBottom:7}}>
+                                {userSession?.data?.completeName || "Loading..."}
+                            </Text>
                             <View
                                 style={{
                                     flexDirection:'row',
@@ -130,10 +135,13 @@ const Profile = ({navigation}) => {
                                 }}
                             >
                                 <FeatherIcon style={{marginRight:6}} color={colors.text} size={14} name='phone' />
-                                <Text style={{...FONTS.fontSm,color:COLORS.white,opacity:.6}}>+63 {userSession?.data?.mobileNumber?.replace(/^0+/, '') || "N/A"}</Text>
+                                <Text style={{...FONTS.fontSm,color:COLORS.white,opacity:.6}}>
+                                    +63 {userSession?.data?.mobileNumber?.replace(/^0+/, '') || "N/A"}
+                                </Text>
                             </View>
                         </View>
                     </ImageBackground>
+
                     <View
                         style={{
                             paddingHorizontal:18,
@@ -144,7 +152,8 @@ const Profile = ({navigation}) => {
                             ...GlobalStyleSheet.shadow,
                         }}
                     >
-                        {navLinks.map((data,index) => {
+
+                        {filteredLinks.map((data,index) => {
                             return(
                                 <TouchableOpacity
                                     key={index}
@@ -156,15 +165,17 @@ const Profile = ({navigation}) => {
                                     }}
                                 >
                                     <Image
-                                        style={[{
+                                        style={{
                                             height:20,
                                             width:20,
                                             tintColor:colors.text,
                                             marginRight:14,
-                                        }]}
+                                        }}
                                         source={data.icon}
                                     />
-                                    <Text style={{...FONTS.font,flex:1,...FONTS.fontMedium,color:colors.title}}>{data.title}</Text>
+                                    <Text style={{...FONTS.font,flex:1,...FONTS.fontMedium,color:colors.title}}>
+                                        {data.title}
+                                    </Text>
                                     <FeatherIcon size={18} color={colors.text} name='chevron-right'/>
                                 </TouchableOpacity>
                             )
@@ -173,7 +184,7 @@ const Profile = ({navigation}) => {
                 </View>
             </ScrollView>
         </View>
-  )
+    )
 }
 
-export default Profile
+export default Profile;

@@ -5,6 +5,24 @@ import { Platform } from "react-native";
 import { sendInChunks } from "./printerUtils";
 
 export function usePrinter() {
+    // If Web → return NOOP printer
+    if (Platform.OS === "web") {
+        return {
+            connectLastPrinter: async () => {
+                console.log("Bluetooth disabled on Web");
+                return;
+            },
+            printBuffer: async () => {
+                console.log("Print disabled on Web");
+                return;
+            },
+            connectedDevice: null,
+            writableChar: null,
+            mtu: 23
+        };
+    }
+
+    // ---- Mobile BLE Printer Logic ----
     const [manager] = useState(new BleManager());
     const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
     const [writableChar, setWritableChar] = useState<Characteristic | null>(null);
@@ -46,11 +64,5 @@ export function usePrinter() {
         await sendInChunks(buffer, connectedDevice, writableChar, mtu);
     };
 
-    return {
-        connectLastPrinter,
-        printBuffer,
-        connectedDevice,
-        writableChar,
-        mtu
-    };
+    return { connectLastPrinter, printBuffer, connectedDevice, writableChar, mtu };
 }

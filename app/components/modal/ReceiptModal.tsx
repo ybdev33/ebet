@@ -1,15 +1,19 @@
 import React, {useState, useEffect} from 'react';
-import { Modal, View, Text, StyleSheet, Image, ScrollView, ImageBackground, TouchableWithoutFeedback, TouchableOpacity, } from 'react-native';
+import { Modal, View, Text, StyleSheet, Image, ScrollView, TouchableWithoutFeedback, TouchableOpacity, Platform, ActivityIndicator } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
-import { COLORS, IMAGES, FONTS } from '../../constants/theme';
-import Constants from "expo-constants";
-import { ActivityIndicator } from "react-native";
+import { COLORS, IMAGES, FONTS } from '../../constants/theme'; // Assuming these are defined elsewhere
+import Constants from "expo-constants"; // Used for GAMING_NAME
+// import { ActivityIndicator } from "react-native"; // Already imported above
 
-import { generateReceiptText, splitChunks, escPosQR, escposImageFromBase64RN } from '../../printer/ReceiptPrinter';
+// Assume these imports are correct for your printing setup
+import { generateReceiptText, escPosQR, escposImageFromBase64RN } from '../../printer/ReceiptPrinter';
 import { usePrinter } from "../../printer/usePrinter";
 import { logoBase64 } from '../../../assets/logoBase64';
 
+// Retrieve GAMING_NAME from Expo config
 const { GAMING_NAME } = Constants.expoConfig?.extra || {};
+
+// --- Interface Definitions ---
 
 interface Combination {
     label: string;
@@ -29,6 +33,21 @@ interface ReceiptModalProps {
     autoPrint?: boolean;
 }
 
+// --- Helper Functions ---
+
+const formatBetTime = (isoString: string) => {
+    const date = new Date(isoString);
+    const pad = (n: number) => n.toString().padStart(2, '0');
+
+    const year = date.getFullYear().toString().slice(2);
+    const month = pad(date.getMonth() + 1);
+    const day = pad(date.getDate());
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+};
+
 const ReceiptModal: React.FC<ReceiptModalProps> = ({
                                                        visible,
                                                        onClose,
@@ -39,58 +58,51 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
                                                        reference,
                                                        autoPrint = false
                                                    }) => {
-    const { connectLastPrinter, printBuffer, connectedDevice } = usePrinter();
-    const [printerReady, setPrinterReady] = useState(false);
-    const [isPrinting, setIsPrinting] = useState(true);
 
+    const { connectLastPrinter, printBuffer, connectedDevice } = usePrinter();
+
+    const [printerReady, setPrinterReady] = useState(false);
+    const [isPrinting, setIsPrinting] = useState(false);
+    const [connectionError, setConnectionError] = useState<string | null>(null); // State for connection errors
+    const [printError, setPrintError] = useState<string | null>(null);         // State for runtime printing errors
+
+    // 1. Printer Connection Effect
     useEffect(() => {
-        if (!visible) return;
+        if (!visible || Platform.OS === "web") {
+            setPrinterReady(false);
+            setConnectionError(null);
+            setPrintError(null);
+            return;
+        }
 
         const connect = async () => {
+            setConnectionError(null);
+            setPrinterReady(false);
             try {
                 await connectLastPrinter();
                 setPrinterReady(true);
             } catch (e) {
                 console.log("Connection failed:", e);
-                setPrinterReady(false);
+                setConnectionError("Failed to connect to the printer. Ensure it is paired and on.");
+            } finally {
+                // Ensure setIsPrinting is false after connect attempt
                 setIsPrinting(false);
             }
         };
 
         connect();
+
+        // Cleanup function to clear state
+        return () => {
+            setPrinterReady(false);
+            setConnectionError(null);
+            setPrintError(null);
+        };
     }, [visible]);
 
-    useEffect(() => {
-        if (visible && autoPrint && printerReady) {
-            const doAutoPrint = async () => {
-                setIsPrinting(true);
-                try {
-                    await printReceipt();
-                } catch (e) {
-                    console.log("Auto print failed:", e);
-                } finally {
-                    setIsPrinting(false);
-                }
-            };
 
-            doAutoPrint();
-        }
-    }, [printerReady, autoPrint, visible]);
-
-    const formatBetTime = (isoString: string) => {
-        const date = new Date(isoString);
-        const pad = (n: number) => n.toString().padStart(2, '0');
-
-        const year = date.getFullYear().toString().slice(2);
-        const month = pad(date.getMonth() + 1);
-        const day = pad(date.getDate());
-        const hours = pad(date.getHours());
-        const minutes = pad(date.getMinutes());
-
-        return `${year}-${month}-${day} ${hours}:${minutes}`;
-    };
-
-    const printReceipt = async (retryCount = 0) => {
+    // 2. Core Printing Logic with Retries (Throws on max retry failure)
+    const printReceipt = async (retryCount = 0): Promise<void> => {
         try {
             const logo = escposImageFromBase64RN(logoBase64, 384);
 
@@ -125,6 +137,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
             const finalBuffer = Buffer.concat([logo, textBytes, qrBytes, referenceBytes]);
 
             await printBuffer(finalBuffer);
+
         } catch (e) {
             console.log(`Print attempt ${retryCount + 1} failed:`, e);
 
@@ -134,12 +147,39 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
             if (retryCount < MAX_RETRIES) {
                 console.log(`Retrying in ${RETRY_DELAY_MS / 1000} seconds...`);
                 await new Promise(res => setTimeout(res, RETRY_DELAY_MS));
-                await printReceipt(retryCount + 1); // retry
+                await printReceipt(retryCount + 1); // recursive retry
             } else {
-                alert("Failed to print receipt after multiple attempts");
+                // Throw the error after exhausting retries
+                const errorDetails = e instanceof Error ? e.message : String(e);
+                throw new Error(`Failed to print receipt after multiple attempts: ${errorDetails}`);
             }
         }
     };
+
+
+    // 3. Auto-Print Effect
+    useEffect(() => {
+        if (visible && autoPrint && printerReady) {
+            const doAutoPrint = async () => {
+                setIsPrinting(true);
+                setPrintError(null); // Clear previous errors
+                try {
+                    await printReceipt();
+                } catch (e) {
+                    console.error("Auto print failed:", e);
+                    const errorMessage = e instanceof Error ? e.message : "An unknown error occurred during auto-printing.";
+                    setPrintError(errorMessage);
+                } finally {
+                    setIsPrinting(false);
+                }
+            };
+
+            doAutoPrint();
+        }
+    }, [printerReady, autoPrint, visible]);
+
+
+    // --- Render ---
 
     return (
         <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
@@ -152,18 +192,18 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
                             resizeMode="repeat"
                         />
 
-                        <View style={styles.container}>
+                        <ScrollView contentContainerStyle={styles.container}>
                             <Text style={styles.header}>Philippine Online Sweepstakes</Text>
-                            <Text style={styles.subHeader}>{GAMING_NAME}</Text>
+                            <Text style={styles.subHeader}>{GAMING_NAME || "eBet App"}</Text>
                             <Text style={styles.receiptLabel}>OFFICIAL RECEIPT</Text>
 
                             <Text style={styles.info}>Bet Time: {formatBetTime(betTime)}</Text>
-                            <View style={styles.table}>
 
+                            <View style={styles.table}>
                                 <View style={[styles.row, styles.headerRow]}>
                                     <Text style={[styles.cell, styles.headerCell]}>Bet</Text>
                                     <Text style={[styles.cell, styles.headerCell]}>Amount</Text>
-                                    <Text style={[styles.cell, styles.headerCell]}>Draw</Text>
+                                    <Text style={[styles.cell, styles.headerCell, {marginRight: '10px'}]}>Draw</Text>
                                     <Text style={[styles.cell, styles.headerCell]}>Win</Text>
                                 </View>
 
@@ -185,25 +225,43 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
                                 <Text style={styles.referenceValue}>{reference}</Text>
                             </View>
 
-                            <TouchableOpacity
-                                onPress={async () => {
-                                    setIsPrinting(true);
-                                    await printReceipt();
-                                    setIsPrinting(false);
-                                }}
-                                style={[
-                                    styles.printButton,
-                                    (!printerReady || isPrinting) && { opacity: 0.4 }
-                                ]}
-                                disabled={!printerReady || isPrinting}
-                            >
-                                {isPrinting ? (
-                                    <ActivityIndicator size="small" color="#fff" />
-                                ) : (
-                                    <Text style={[FONTS.h6, { color: COLORS.white }]}>Print 🖨️</Text>
-                                )}
-                            </TouchableOpacity>
-                        </View>
+                            {Platform.OS !== "web" && (
+                                <>
+                                    <TouchableOpacity
+                                        onPress={async () => {
+                                            setIsPrinting(true);
+                                            setPrintError(null); // Clear previous runtime errors
+                                            try {
+                                                await printReceipt();
+                                            } catch (e) {
+                                                console.error("Manual print failed:", e);
+                                                const errorMessage = e instanceof Error ? e.message : "Failed to print.";
+                                                setPrintError(errorMessage); // Set the error for display
+                                            } finally {
+                                                setIsPrinting(false);
+                                            }
+                                        }}
+                                        style={[
+                                            styles.printButton,
+                                            (!printerReady || isPrinting) && { opacity: 0.4, backgroundColor: COLORS.dark }
+                                        ]}
+                                        disabled={!printerReady || isPrinting}
+                                    >
+                                        {isPrinting || !printerReady ? (
+                                            <ActivityIndicator size="small" color="#fff" />
+                                        ) : (
+                                            <Text style={[FONTS.h6, { color: COLORS.white }]}>Print 🖨️</Text>
+                                        )}
+                                    </TouchableOpacity>
+
+                                    {(connectionError || printError) && (
+                                        <Text style={styles.errorText}>
+                                            {connectionError || printError}
+                                        </Text>
+                                    )}
+                                </>
+                            )}
+                        </ScrollView>
                     </View>
                 </View>
             </TouchableWithoutFeedback>
@@ -219,16 +277,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         position: 'relative',
     },
-    background: {
-        flex: 1,
-        width: '100%',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
     backgroundContainer: {
         width: '90%',
         maxWidth: 400,
-        padding: 20,
+        padding: 0,
         borderRadius: 10,
         overflow: 'hidden',
         alignItems: 'center',
@@ -236,7 +288,6 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255,255,255,0.95)',
         position: 'relative',
     },
-
     repeatingBackground: {
         position: 'absolute',
         top: 0,
@@ -249,6 +300,8 @@ const styles = StyleSheet.create({
     container: {
         borderRadius: 10,
         alignItems: 'center',
+        padding: 20,
+        minWidth: '100%',
     },
     header: {
         ...FONTS.fontMedium,
@@ -290,8 +343,7 @@ const styles = StyleSheet.create({
     cell: {
         ...FONTS.fontMedium,
         fontSize: 13,
-        width: '23%',
-        textAlign: 'center',
+        textAlign: 'left',
     },
     headerRow: {
         borderColor: '#ccc',
@@ -299,6 +351,7 @@ const styles = StyleSheet.create({
     headerCell: {
         ...FONTS.fontSm,
         color: '#222',
+        fontWeight: 'bold',
     },
     total: {
         ...FONTS.fontMedium,
@@ -306,6 +359,7 @@ const styles = StyleSheet.create({
         fontSize: 15,
         color: '#222',
         alignSelf: 'flex-start',
+        fontWeight: 'bold',
     },
     qrSection: {
         marginTop: 15,
@@ -320,22 +374,39 @@ const styles = StyleSheet.create({
     referenceValue: {
         ...FONTS.fontMedium,
         fontSize: 13,
+        fontWeight: 'bold',
     },
     printButton: {
         position: 'absolute',
-        bottom: -15,
-        right: -28,
+        bottom: 5,
+        right: 5,
         backgroundColor: COLORS.dark,
         padding: 10,
         borderRadius: 8,
         alignItems: 'center',
+        minWidth: 100,
 
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 3 },
         shadowOpacity: 0.3,
         shadowRadius: 4,
-
         elevation: 5,
+    },
+    errorText: {
+        ...FONTS.fontSm,
+        margin: 15,
+        fontSize: 11,
+        color: 'red',
+        textAlign: 'center',
+        paddingHorizontal: 10,
+    },
+    statusText: {
+        ...FONTS.fontSm,
+        marginTop: 15,
+        fontSize: 11,
+        color: COLORS.dark, // A neutral color for status
+        textAlign: 'center',
+        paddingHorizontal: 10,
     }
 });
 
