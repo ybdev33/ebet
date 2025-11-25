@@ -9,11 +9,9 @@ export function usePrinter() {
     if (Platform.OS === "web") {
         return {
             connectLastPrinter: async () => {
-                console.log("Bluetooth disabled on Web");
                 return;
             },
             printBuffer: async () => {
-                console.log("Print disabled on Web");
                 return;
             },
             connectedDevice: null,

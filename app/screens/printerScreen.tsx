@@ -153,7 +153,6 @@ const PrinterScreen: React.FC = () => {
 
         // Check if the device has a valid name
         if (!device.name || device.name.trim() === "") {
-            console.log("Cannot connect: device has no name");
             setModalMessage('Cannot connect: device has no name');
             setIsSuccess(false);
             setModalVisible(true);

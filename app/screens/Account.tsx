@@ -104,10 +104,7 @@ const Account: React.FC = () => {
                 body: body
             });
 
-            console.log("body", body);
-            console.log("response", response);
             const result = await response.json();
-            console.log("result", result);
             if (response.ok) {
                 setModalMessage('Profile updated successfully!');
                 setIsSuccess(true);

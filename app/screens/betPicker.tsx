@@ -231,13 +231,10 @@ const BetPicker: React.FC = (props) => {
                 },
                 body: body
             });
-            console.log("body", body);
 
             const result = await response.json();
-            console.log("result", result);
 
             if (response.ok && result.status === 1) {
-                console.log("result.data.bets", result.data.bets);
 
                 const combinations = result.data.bets.map((bet: any) => {
                     const prefix = bet.isRambol ? 'R' : 'T';
@@ -327,7 +324,6 @@ const BetPicker: React.FC = (props) => {
         setTimeout(() => {
             inputRefs.current[0]?.focus();
         }, 300);
-        console.log("Updated allBets:", allBets);
     }, [allBets]);
 
     const renderGridRow = ({item: row, index: rowIndex}: { item: number[]; index: number }) => {

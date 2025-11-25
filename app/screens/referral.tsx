@@ -34,7 +34,6 @@ const Referral: React.FC = () => {
         (async () => {
             try {
                 const userSession = await getSession('userSession');
-                console.log("userSession", userSession);
                 const userId = userSession.data.userId;
                 const positionId = userSession.data.positionId;
 

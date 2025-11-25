@@ -62,7 +62,7 @@ const SignIn: React.FC<SignInProps> = ({ navigation }) => {
             });
 
             const result = await response.json();
-            console.log("response:", response);
+
             if (response.ok) {
                 await saveSession('userSession', result);
 

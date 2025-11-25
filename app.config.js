@@ -9,7 +9,7 @@ export default {
         platforms: ["ios", "android", "web"],
         extra: {
             eas: {
-                projectId: '8a989997-9916-4f1d-b7f6-6d4932d73720'
+                projectId: 'f5287f35-b85a-4f6b-be81-8b8f68d314ec'
             },
             GAMING_NAME: process.env.GAMING_NAME,
             GAMING_DOMAIN: process.env.GAMING_DOMAIN,

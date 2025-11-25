@@ -17,6 +17,7 @@ import {GlobalStyleSheet} from '../../constants/styleSheet';
 import {LinearGradient} from 'expo-linear-gradient';
 import SuccessModal from "../../components/modal/SuccessModal";
 import Constants from 'expo-constants';
+import {saveSession} from "../../helpers/sessionHelper";
 
 interface SignInProps {
     navigation: {
@@ -72,8 +73,6 @@ const SignUp: React.FC<SignInProps> = ({navigation, route }) => {
                 position: userType
             });
 
-            console.log("body", body);
-
             const response = await fetch(`${GAMING_DOMAIN}/api/ApplicationUsers/CreateUser`, {
                 method: 'POST',
                 headers: {
@@ -83,14 +82,13 @@ const SignUp: React.FC<SignInProps> = ({navigation, route }) => {
                 body: body
             });
 
-            console.log("body", body);
-            console.log("response", response);
             const result = await response.json();
-            console.log("result", result);
-            if (response.ok) {
+
+            if (response.ok && result.status === 1) {
                 setModalMessage('You are now logged in.');
                 setIsSuccess(true);
                 setModalVisible(true);
+                await saveSession('userSession', result);
                 navigation.navigate('drawernavigation');
                 setModalVisible(false);
             } else {
