@@ -67,17 +67,15 @@ const Home = () => {
 
                             const body = JSON.stringify({
                                 authorId: userId,
-                                dateFrom: formattedDate,
-                                dateTo: formattedDate,
+                                date: formattedDate,
                             });
 
-                            const response = await fetch(`${GAMING_DOMAIN}/api/Admin/GetDashBoardDetails`, {
-                                method: 'POST',
+                            const response = await fetch(`${GAMING_DOMAIN}/api/Common/GetDashBoardDetails?authorId=${userId}&date=${formattedDate}`, {
+                                method: 'GET',
                                 headers: {
                                     'Content-Type': 'application/json',
                                     // Authorization: 'Settings a2luZ3MzOiF0ZXJ5U3dldGk=',
-                                },
-                                body: body
+                                }
                             });
 
                             const result = await response.json();

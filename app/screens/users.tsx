@@ -204,135 +204,141 @@ const Users: React.FC = () => {
                 msOverflowStyle: 'none',
             }),
         }]}>
-            <View style={{ ...styles.container, backgroundColor: colors.background }}>
+            <View style={{ ...styles.container, flex: 1, backgroundColor: colors.background }}>
                 <HeaderBar title="Users" leftIcon="back" />
                 <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    onContentSizeChange={width => setCompleteScrollBarWidth(width)}
-                    onLayout={({ nativeEvent: { layout: { width } } }) => setVisibleScrollBarWidth(width)}
-                    onScroll={Animated.event(
-                        [{ nativeEvent: { contentOffset: { x: scrollIndicator } } }],
-                        { useNativeDriver: false }
-                    )}
-                    scrollEventThrottle={16}
+                    style={{ flex: 1, paddingBottom: 50 }}
+                    contentContainerStyle={{ padding: 0 }}
+                    showsVerticalScrollIndicator={true}
                 >
-                    <View style={{ marginTop: 20, paddingHorizontal: 15}}>
-                        <View style={[styles.tableHeader, { backgroundColor: colors.card }]}>
-                            <Text style={[styles.tableItemHead, { color: colors.title }]}>Load</Text>
-                            <View style={[styles.iconColumn, {width: 15}]}>
-                                <Text style={{ ...FONTS.fontSm, color: colors.title }}></Text>
-                            </View>
-                            <Text style={[styles.tableItemHead, { color: colors.title }]}>Name</Text>
-                            <Text style={[styles.tableItemHead, { color: colors.title }]}>Username</Text>
-                            <Text style={[styles.tableItemHead, { color: colors.title }]}>Mobile</Text>
-                            <Text style={[styles.tableItemHead, { color: colors.title }]}>Status</Text>
-                            <Text style={[styles.tableItemHead, { color: colors.title }]}>Date Registered</Text>
-                            <View style={[styles.iconColumn]}>
-                                <Text style={{ ...FONTS.fontSm, color: colors.title }}>Action</Text>
-                            </View>
-                        </View>
-
-                        {paginatedUsers.map((user) => (
-                            <View
-                                key={user.userId}
-                                style={{ flexDirection: 'row', height: 40, alignItems: 'center', width: '100%' }}
+                    <ScrollView
+                                horizontal
+                                showsHorizontalScrollIndicator={true}
+                                onContentSizeChange={width => setCompleteScrollBarWidth(width)}
+                                onLayout={({ nativeEvent: { layout: { width } } }) => setVisibleScrollBarWidth(width)}
+                                onScroll={Animated.event(
+                                    [{ nativeEvent: { contentOffset: { x: scrollIndicator } } }],
+                                    { useNativeDriver: false }
+                                )}
+                                scrollEventThrottle={16}
                             >
-                                <Text style={[styles.tableItem, { color: COLORS.primary }]}>₱ {user.loadAmount}</Text>
+                        <View style={{ marginTop: 20, paddingHorizontal: 15}}>
+                            <View style={[styles.tableHeader, { backgroundColor: colors.card }]}>
+                                <Text style={[styles.tableItemHead, { color: colors.title }]}>Load</Text>
                                 <View style={[styles.iconColumn, {width: 15}]}>
-                                    <Ripple
-                                        onPress={() => {
-                                            handleTopUpPress();
-                                            setSelectedUser(user);
-                                            setTopUpModalVisible(true);
-                                        }}
-                                        style={[
-                                            styles.paginationButton,
-                                            {
-                                                backgroundColor: COLORS.primary},
-                                        ]}
-                                    >
-                                        <Image source={ICONS.trade} style={{ height: 18, width: 18 }} />
-                                    </Ripple>
+                                    <Text style={{ ...FONTS.fontSm, color: colors.title }}></Text>
                                 </View>
-                                <Text style={[styles.tableItem, { color: colors.text }]}>{user.completeName}</Text>
-                                <Text style={[styles.tableItem, { color: colors.text }]}>{user.username}</Text>
-                                <Text style={[styles.tableItem, { color: colors.text }]}>{user.mobileNumber}</Text>
-                                <Text style={[styles.tableItem, { color: colors.text }]}>
-                                    {user.accountStatus ? 'Active' : 'Inactive'}
-                                </Text>
-                                <Text style={[styles.tableItem, { color: colors.text }]}>
-                                    {new Date(user.dateRegister).toLocaleDateString()}
-                                </Text>
-
-                                <View style={styles.iconColumn}>
-                                    <Ripple onPress={() => console.log(`Edit ${user.username}`)}>
-                                        <FeatherIcon name="more-vertical" size={18} color={COLORS.primary} />
-                                    </Ripple>
+                                <Text style={[styles.tableItemHead, { color: colors.title }]}>Name</Text>
+                                <Text style={[styles.tableItemHead, { color: colors.title }]}>Username</Text>
+                                <Text style={[styles.tableItemHead, { color: colors.title }]}>Mobile</Text>
+                                <Text style={[styles.tableItemHead, { color: colors.title }]}>Status</Text>
+                                <Text style={[styles.tableItemHead, { color: colors.title }]}>Date Registered</Text>
+                                <View style={[styles.iconColumn]}>
+                                    <Text style={{ ...FONTS.fontSm, color: colors.title }}>Action</Text>
                                 </View>
                             </View>
-                        ))}
+
+                            {paginatedUsers.map((user) => (
+                                <View
+                                    key={user.userId}
+                                    style={{ flexDirection: 'row', height: 40, alignItems: 'center', width: '100%' }}
+                                >
+                                    <Text style={[styles.tableItem, { color: COLORS.primary }]}>₱ {user.loadAmount}</Text>
+                                    <View style={[styles.iconColumn, {width: 15}]}>
+                                        <Ripple
+                                            onPress={() => {
+                                                handleTopUpPress();
+                                                setSelectedUser(user);
+                                                setTopUpModalVisible(true);
+                                            }}
+                                            style={[
+                                                styles.paginationButton,
+                                                {
+                                                    backgroundColor: COLORS.primary},
+                                            ]}
+                                        >
+                                            <Image source={ICONS.trade} style={{ height: 18, width: 18 }} />
+                                        </Ripple>
+                                    </View>
+                                    <Text style={[styles.tableItem, { color: colors.text }]}>{user.completeName}</Text>
+                                    <Text style={[styles.tableItem, { color: colors.text }]}>{user.username}</Text>
+                                    <Text style={[styles.tableItem, { color: colors.text }]}>{user.mobileNumber}</Text>
+                                    <Text style={[styles.tableItem, { color: colors.text }]}>
+                                        {user.accountStatus ? 'Active' : 'Inactive'}
+                                    </Text>
+                                    <Text style={[styles.tableItem, { color: colors.text }]}>
+                                        {new Date(user.dateRegister).toLocaleDateString()}
+                                    </Text>
+
+                                    <View style={styles.iconColumn}>
+                                        <Ripple onPress={() => console.log(`Edit ${user.username}`)}>
+                                            <FeatherIcon name="more-vertical" size={18} color={COLORS.primary} />
+                                        </Ripple>
+                                    </View>
+                                </View>
+                            ))}
+                        </View>
+                    </ScrollView>
+
+                    <View style={{ paddingHorizontal: 15 }}>
+                        <View style={[styles.scrollBar, { backgroundColor: colors.card }]}>
+                            <Animated.View
+                                style={{
+                                    height: 5,
+                                    left: 3,
+                                    borderRadius: 8,
+                                    backgroundColor: COLORS.primary,
+                                    width: scrollIndicatorSize - 36,
+                                    transform: [{ translateX: scrollIndicatorPosition }],
+                                }}
+                            />
+                        </View>
+                    </View>
+
+                    <View style={styles.paginationContainer}>
+                        <Text style={{ ...FONTS.fontXs, color: colors.text }}>
+                            Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, userData.length)} of {userData.length} entries
+                        </Text>
+
+                        <View style={styles.pagination}>
+                            <Ripple
+                                disabled={currentPage === 1}
+                                onPress={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                style={[styles.paginationButton, { backgroundColor: colors.card }]}
+                            >
+                                <FeatherIcon size={14} color={colors.title} name='chevron-left' />
+                            </Ripple>
+
+                            {Array.from({ length: totalPages }, (_, i) => (
+                                <Ripple
+                                    key={i}
+                                    onPress={() => setCurrentPage(i + 1)}
+                                    style={[
+                                        styles.paginationButton,
+                                        {
+                                            backgroundColor: currentPage === i + 1 ? COLORS.primary : colors.card,
+                                        },
+                                    ]}
+                                >
+                                    <Text style={{
+                                        ...FONTS.fontSm,
+                                        color: currentPage === i + 1 ? '#fff' : colors.text
+                                    }}>
+                                        {i + 1}
+                                    </Text>
+                                </Ripple>
+                            ))}
+
+                            <Ripple
+                                disabled={currentPage === totalPages}
+                                onPress={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                style={[styles.paginationButton, { backgroundColor: colors.card }]}
+                            >
+                                <FeatherIcon size={14} color={colors.title} name='chevron-right' />
+                            </Ripple>
+                        </View>
                     </View>
                 </ScrollView>
-
-                <View style={{ paddingHorizontal: 15 }}>
-                    <View style={[styles.scrollBar, { backgroundColor: colors.card }]}>
-                        <Animated.View
-                            style={{
-                                height: 5,
-                                left: 3,
-                                borderRadius: 8,
-                                backgroundColor: COLORS.primary,
-                                width: scrollIndicatorSize - 36,
-                                transform: [{ translateX: scrollIndicatorPosition }],
-                            }}
-                        />
-                    </View>
-                </View>
-
-                <View style={styles.paginationContainer}>
-                    <Text style={{ ...FONTS.fontXs, color: colors.text }}>
-                        Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, userData.length)} of {userData.length} entries
-                    </Text>
-
-                    <View style={styles.pagination}>
-                        <Ripple
-                            disabled={currentPage === 1}
-                            onPress={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                            style={[styles.paginationButton, { backgroundColor: colors.card }]}
-                        >
-                            <FeatherIcon size={14} color={colors.title} name='chevron-left' />
-                        </Ripple>
-
-                        {Array.from({ length: totalPages }, (_, i) => (
-                            <Ripple
-                                key={i}
-                                onPress={() => setCurrentPage(i + 1)}
-                                style={[
-                                    styles.paginationButton,
-                                    {
-                                        backgroundColor: currentPage === i + 1 ? COLORS.primary : colors.card,
-                                    },
-                                ]}
-                            >
-                                <Text style={{
-                                    ...FONTS.fontSm,
-                                    color: currentPage === i + 1 ? '#fff' : colors.text
-                                }}>
-                                    {i + 1}
-                                </Text>
-                            </Ripple>
-                        ))}
-
-                        <Ripple
-                            disabled={currentPage === totalPages}
-                            onPress={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                            style={[styles.paginationButton, { backgroundColor: colors.card }]}
-                        >
-                            <FeatherIcon size={14} color={colors.title} name='chevron-right' />
-                        </Ripple>
-                    </View>
-                </View>
 
                 <Modal
                     animationType="fade"

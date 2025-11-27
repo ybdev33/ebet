@@ -144,7 +144,7 @@ function Sidebar({ navigation }) {
                 )}
                 <TouchableOpacity
                     style={styles.navItem}
-                    onPress={() => navigation.navigate('signin')}
+                    onPress={() => navigation.navigate('logout')}
                 >
                     <Image
                         source={ICONS.logout}

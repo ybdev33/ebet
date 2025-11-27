@@ -45,7 +45,7 @@ const Profile = ({navigation}) => {
         {
             icon : ICONS.logout,
             title : "Logout",
-            navigate : "signin",
+            navigate : "logout",
         },
     ];
 

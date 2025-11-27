@@ -2,7 +2,7 @@ import 'dotenv/config';
 
 export default {
     expo: {
-        name: process.env.GAMING_NAME || 'ebetgame',
+        name: process!.env.GAMING_NAME || 'ebetgame',
         slug: 'ebetgame',
         version: '1.0.0',
         sdkVersion: '54.0.0',
