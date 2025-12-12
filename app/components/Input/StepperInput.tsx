@@ -9,7 +9,8 @@ import {
     TextInput,
     TouchableOpacity,
     StyleSheet,
-    FlatList
+    FlatList,
+    Platform,
 } from 'react-native';
 import FeatherIcon from "react-native-vector-icons/Feather";
 import { COLORS, FONTS } from "@/app/constants/theme";
@@ -66,9 +67,25 @@ const StepperInput = forwardRef<TextInput, StepperInputProps>(
         };
 
         const handleFocus = () => {
-            inputRef.current?.setSelection(0, value.length);
+            const el: any = inputRef.current;
+
+            if (!el) return;
+
+            if (Platform.OS === "web") {
+                if (el.setSelectionRange) {
+                    el.setSelectionRange(0, value.length);
+                }
+            } else {
+                el.setNativeProps({
+                    selection: { start: 0, end: value.length }
+                });
+            }
+
             if (flatListRef?.current) {
-                flatListRef.current.scrollToOffset({ offset: 200, animated: true });
+                flatListRef.current.scrollToOffset({
+                    offset: 200,
+                    animated: true,
+                });
             }
         };
 
@@ -84,8 +101,24 @@ const StepperInput = forwardRef<TextInput, StepperInputProps>(
                             ref={inputRef}
                             style={styles.betInput}
                             value={value}
-                            onChangeText={setValue}
+                            onChangeText={(text) => {
+                                const numeric = text.replace(/[^0-9]/g, "");
+                                setValue(numeric);
+                            }}
                             keyboardType="numeric"
+                            inputMode="numeric"
+                            {...(Platform.OS === "web"
+                                ? {
+                                    type: "number",
+                                    pattern: "[0-9]*",
+                                }
+                                : {})}
+                            onKeyPress={({ nativeEvent }) => {
+                                const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight'];
+                                if (!/[0-9]/.test(nativeEvent.key) && !allowedKeys.includes(nativeEvent.key)) {
+                                    nativeEvent.preventDefault?.();
+                                }
+                            }}
                             onFocus={handleFocus}
                             editable={true}
                             onSubmitEditing={onSubmitEditing}

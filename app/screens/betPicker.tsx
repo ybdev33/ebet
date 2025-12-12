@@ -39,11 +39,11 @@ const BetPicker: React.FC = (props) => {
 
         const availableTimes: string[] = [];
 
-        if (current >= 500 && current <= 1342) {
+        if (current >= 500 && current <= 1345) {
             availableTimes.push("2 PM", "5 PM", "9 PM");
-        } else if (current >= 1345 && current <= 1642) {
+        } else if (current >= 1345 && current <= 1645) {
             availableTimes.push("5 PM", "9 PM");
-        } else if (current >= 1642 && current <= 2042) {
+        } else if (current >= 1645 && current <= 2145) {
             availableTimes.push("9 PM");
         } else {
             availableTimes.push("Cut Off");
@@ -747,8 +747,8 @@ const BetPicker: React.FC = (props) => {
                 <Animated.View
                     style={{
                         position: 'absolute',
-                        top: -45,
-                        left: 14,
+                        top: Platform.OS === 'web' ? 0 : -45,
+                        left: Platform.OS === 'web' ? 12 : 14,
                         width: 18,
                         height: 18,
                         borderRadius: 10,
@@ -760,6 +760,7 @@ const BetPicker: React.FC = (props) => {
                             { translateY: flyAnim.y },
                         ],
                         zIndex: 999,
+                        pointerEvents: 'none'
                     }}
                 >
                     <Text style={{
