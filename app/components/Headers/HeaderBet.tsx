@@ -9,9 +9,10 @@ interface HeaderBetProps {
     pay: number;
     betCount: number;
     onPressViewAll?: () => void;
+    cartRef?: React.RefObject<View>;
 }
 
-const HeaderBet: React.FC<HeaderBetProps> = ({ amount, pay, betCount, onPressViewAll }) => {
+const HeaderBet: React.FC<HeaderBetProps> = ({ amount, pay, betCount, onPressViewAll, cartRef }) => {
     const { colors } = useTheme();
 
     return (
@@ -32,10 +33,11 @@ const HeaderBet: React.FC<HeaderBetProps> = ({ amount, pay, betCount, onPressVie
             </View>
 
             <TouchableOpacity
+                ref={cartRef}
                 onPress={onPressViewAll}
                 style={styles.cartButton}
             >
-                <FeatherIcon name="shopping-cart" size={20} color={COLORS.text} />
+                <FeatherIcon name="shopping-cart" size={24} color={COLORS.text} />
                 <Text style={styles.betCount}>{betCount}</Text>
             </TouchableOpacity>
         </View>
@@ -84,13 +86,14 @@ const styles = StyleSheet.create({
     betCount: {
         backgroundColor: COLORS.danger,
         borderRadius: 10,
-        paddingHorizontal: 5,
+        ...FONTS.h6,
         fontSize: 11,
         color: COLORS.white,
         position: 'absolute',
         top: -5,
         right: -8,
-        minWidth: 16,
+        width: 18,
+        height: 18,
         textAlign: 'center',
     },
 });

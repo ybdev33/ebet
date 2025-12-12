@@ -7,6 +7,7 @@ import {
     FlatList,
     Platform, TextInput,
     KeyboardAvoidingView, Modal,
+    Animated,
 } from "react-native";
 import {COLORS, FONTS, SIZES} from "../constants/theme";
 import {useFocusEffect, useTheme} from "@react-navigation/native";
@@ -30,12 +31,42 @@ const BetPicker: React.FC = (props) => {
     const [selectedNumbers, setSelectedNumbers] = useState<number[]>(Array(6).fill(-1));
     const flatListRef = useRef<FlatList>(null);
 
-    const timeOptions = ["2 PM", "5 PM", "9 PM"];
+    const getDefaultTimeOptions = () => {
+        const now = new Date();
+        const hour = now.getHours();
+        const minute = now.getMinutes();
+        const current = hour * 100 + minute;
+
+        const availableTimes: string[] = [];
+
+        if (current >= 500 && current <= 1342) {
+            availableTimes.push("2 PM", "5 PM", "9 PM");
+        } else if (current >= 1345 && current <= 1642) {
+            availableTimes.push("5 PM", "9 PM");
+        } else if (current >= 1642 && current <= 2042) {
+            availableTimes.push("9 PM");
+        } else {
+            availableTimes.push("Cut Off");
+        }
+
+        return availableTimes;
+    };
+
+    const availableTimes = getDefaultTimeOptions();
+    const [timeOptions, setTimeOptions] = useState<string[]>(availableTimes);
+    const [timeIndex, setTimeIndex] = useState(0);
+    const [timeValue, setTimeValue] = useState(availableTimes[0]);
+
     const drawOptionsMap: { [key: string]: string[] } = {
+        "Cut Off": ["---"],
         "2 PM": ["S2", "S3"],
         "5 PM": ["S2", "S3"],
         "9 PM": ["S2", "S3", "L2", "L3", "4D", "P3"],
     };
+    const [filteredDrawOptions, setFilteredDrawOptions] = useState<string[]>(drawOptionsMap[availableTimes[0]]);
+    const [drawIndex, setDrawIndex] = useState(0);
+    const [drawValue, setDrawValue] = useState(filteredDrawOptions[0]);
+
     const amtOptions = ["", "1", "5", "10", "15", "20", "25", "30"];
     const [amtIndex, setAmtIndex] = useState(0);
     const [amtValue, setAmtValue] = useState(amtOptions[amtIndex]);
@@ -43,33 +74,34 @@ const BetPicker: React.FC = (props) => {
     const rmbOptions = ["", "1", "5", "10", "15", "20", "25", "30"];
     const [rmbIndex, setRmbIndex] = useState(0);
     const [rmbValue, setRmbValue] = useState(rmbOptions[rmbIndex]);
-
-    const [timeIndex, setTimeIndex] = useState(0);
-    const [timeValue, setTimeValue] = useState(timeOptions[timeIndex]);
-
-    const [drawIndex, setDrawIndex] = useState(0);
-    const [filteredDrawOptions, setFilteredDrawOptions] = useState<string[]>(drawOptionsMap[timeValue]);
-    const [drawValue, setDrawValue] = useState(filteredDrawOptions[drawIndex]);
     const isRmbEnabled = drawValue === "L3" || drawValue === "S3";
 
     const gridNumbers = Array.from({length: 6}, () =>
         Array.from({length: 10}, (_, colIndex) => colIndex)
     );
 
+    const lastTimeIndex = useRef<number>(0);
+
     const handleTimeChange = (index: number) => {
         setTimeIndex(index);
         const newTimeValue = timeOptions[index];
         setTimeValue(newTimeValue);
 
+        lastTimeIndex.current = index;
+
         const updatedDrawOptions = drawOptionsMap[newTimeValue];
         setFilteredDrawOptions(updatedDrawOptions);
 
-        setDrawIndex(0);
-        setDrawValue(updatedDrawOptions[0]);
+        const lastIndex = lastDrawIndexMap.current[newTimeValue] ?? 0;
+        setDrawIndex(lastIndex);
+        setDrawValue(updatedDrawOptions[lastIndex]);
     };
 
+    const lastDrawIndexMap = useRef<{ [time: string]: number }>({});
     const handleDrawChange = (index: number) => {
         setDrawValue(filteredDrawOptions[index]);
+
+        lastDrawIndexMap.current[timeValue] = index;
 
         const updated = [...selectedNumbers];
         const updatedIndex = getDrawLength();
@@ -104,7 +136,7 @@ const BetPicker: React.FC = (props) => {
             P3: 6,
         };
 
-        return drawLengths[drawValue] || 2;
+        return drawLengths[drawValue] || 0;
     };
 
     const handleSelectNumber = (rowIndex: number, number: number) => {
@@ -129,16 +161,48 @@ const BetPicker: React.FC = (props) => {
     };
 
     const [allBets, setAllBets] = useState<any[]>([]);
-    const isAddEnabled  = selectedNumbers.filter(n => n !== -1).length >= getDrawLength() &&
+    const isAddEnabled  =
+        timeValue !== "Cut Off" &&
+        selectedNumbers.filter(n => n !== -1).length >= getDrawLength() &&
         (
             (amtValue !== "") ||
             (isRmbEnabled && rmbValue !== "")
         );
 
+    const flyAnim = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
+    const [showFly, setShowFly] = useState(false);
+
+    const addButtonRef = useRef<TouchableOpacity>(null);
+    const cartRef = useRef<View>(null);
+    const [displayedBetCount, setDisplayedBetCount] = useState(allBets.length);
+
+    const handleFlyToCart = (onFlyComplete?: () => void) => {
+        if (!addButtonRef.current || !cartRef.current) return;
+
+        addButtonRef.current.measure((fx, fy, width, height, px, py) => {
+            cartRef.current?.measure((cfx, cfy, cwidth, cheight, cpx, cpy) => {
+                flyAnim.setValue({ x: px, y: py });
+                setShowFly(true);
+
+                Animated.timing(flyAnim, {
+                    toValue: { x: cpx, y: cpy },
+                    duration: 600,
+                    useNativeDriver: true,
+                }).start(() => {
+                    setShowFly(false);
+                    if (onFlyComplete) onFlyComplete();
+                });
+            });
+        });
+    };
+
     const handleBet = (mergeIfExists = false) => {
+        if (!isAddEnabled) return;
+
+        let isNewBetAdded = false; // track if a new bet was actually added
+
         const time = timeValue.match(/\d+/)?.[0] || '';
         const draw = time + drawValue;
-
         const filteredNumbers = selectedNumbers.filter(num => num !== -1);
 
         let newBets = [...allBets];
@@ -160,6 +224,7 @@ const BetPicker: React.FC = (props) => {
                 );
 
                 if (existingBetIndex !== -1) {
+                    // merged, no new bet added
                     const existingAmount = Number(newBets[existingBetIndex].amount);
                     const additionalAmount = Number(amountValue);
                     newBets[existingBetIndex].amount = (existingAmount + additionalAmount).toString();
@@ -167,6 +232,7 @@ const BetPicker: React.FC = (props) => {
                 }
             }
 
+            // new bet added
             newBets.push({
                 id: newId,
                 draw,
@@ -175,6 +241,7 @@ const BetPicker: React.FC = (props) => {
                 combination,
             });
             newId = (Number(newId) + 1).toString();
+            isNewBetAdded = true;
         };
 
         if (amtValue !== "") {
@@ -185,9 +252,17 @@ const BetPicker: React.FC = (props) => {
             addOrMergeBet(true, rmbValue);
         }
 
-        setAllBets(newBets);
+        // trigger fly animation and only update displayedBetCount if new bet added
+        handleFlyToCart(() => {
+            if (isNewBetAdded) {
+                setDisplayedBetCount(newBets.length);
+            }
+        });
 
-        handleClear(true); 
+        setTimeout(() => {
+            setAllBets(newBets);
+            handleClear(true);
+        }, 50);
     };
 
     const [modalVisible, setModalVisible] = useState(false);
@@ -426,12 +501,12 @@ const BetPicker: React.FC = (props) => {
                             })}
                         </View>
 
-                        {/* Floating Auto Pick button */}
                         <TouchableOpacity
-                            style={styles.autoPickButton}
-                            onPress={handleAutoPick}
+                            style={styles.handleClear}
+                            onPress={() => handleClear()}
+                            disabled={timeValue === "Cut Off"}
                         >
-                            <FeatherIcon name="shuffle" size={24} color={COLORS.dark} />
+                            <FeatherIcon name="trash-2" size={21} color={COLORS.danger} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -454,50 +529,60 @@ const BetPicker: React.FC = (props) => {
                         </View>
 
                         <View style={[GlobalStyleSheet.col50]}>
-                            <StepperInput
-                                label={drawValue}
-                                options={filteredDrawOptions}
-                                value=""
-                                setValue={(value) => handleDrawChange(filteredDrawOptions.indexOf(value))}
-                                currentIndex={drawIndex}
-                                setCurrentIndex={setDrawIndex}
-                                editable={false}
-                                flatListRef={flatListRef}
-                            />
-                        </View>
-
-                        <View style={[GlobalStyleSheet.col50]}>
-                            <StepperInput
-                                ref={targetRef}
-                                label="Target"
-                                options={amtOptions}
-                                value={amtValue}
-                                setValue={setAmtValue}
-                                currentIndex={amtIndex}
-                                setCurrentIndex={setAmtIndex}
-                                editable={true}
-                                flatListRef={flatListRef}
-                                onSubmitEditing={() => {
-                                    if (isRmbEnabled) {
-                                        rambolRef.current?.focus();
-                                    } else {
-                                        handleBet();
-                                    }
-                                }}
-                                style={{
-                                    container: { marginVertical: 8 },
-                                    label: { ...FONTS.h6 },
-                                    value: { ...FONTS.h6 },
-                                    button: { backgroundColor: COLORS.primaryLight, paddingVertical: 5, paddingHorizontal: 10 },
-                                    buttonText: { ...FONTS.h6 }
-                                }}
-                            />
+                            <View
+                                style={{ opacity: timeValue !== "Cut Off" ? 1 : 0.5 }}
+                                pointerEvents={timeValue !== "Cut Off" ? 'auto' : 'none'}
+                            >
+                                <StepperInput
+                                    label={drawValue}
+                                    options={filteredDrawOptions}
+                                    value=""
+                                    setValue={(value) => handleDrawChange(filteredDrawOptions.indexOf(value))}
+                                    currentIndex={drawIndex}
+                                    setCurrentIndex={setDrawIndex}
+                                    editable={false}
+                                    flatListRef={flatListRef}
+                                />
+                            </View>
                         </View>
 
                         <View style={[GlobalStyleSheet.col50]}>
                             <View
-                                style={{ opacity: isRmbEnabled ? 1 : 0.5 }}
-                                pointerEvents={isRmbEnabled ? 'auto' : 'none'}
+                                style={{ opacity: timeValue !== "Cut Off" ? 1 : 0.5 }}
+                                pointerEvents={timeValue !== "Cut Off" ? 'auto' : 'none'}
+                            >
+                                <StepperInput
+                                    ref={targetRef}
+                                    label="Target"
+                                    options={amtOptions}
+                                    value={amtValue}
+                                    setValue={setAmtValue}
+                                    currentIndex={amtIndex}
+                                    setCurrentIndex={setAmtIndex}
+                                    editable={true}
+                                    flatListRef={flatListRef}
+                                    onSubmitEditing={() => {
+                                        if (isRmbEnabled) {
+                                            rambolRef.current?.focus();
+                                        } else {
+                                            handleBet();
+                                        }
+                                    }}
+                                    style={{
+                                        container: { marginVertical: 8 },
+                                        label: { ...FONTS.h6 },
+                                        value: { ...FONTS.h6 },
+                                        button: { backgroundColor: COLORS.primaryLight, paddingVertical: 5, paddingHorizontal: 10 },
+                                        buttonText: { ...FONTS.h6 }
+                                    }}
+                                />
+                            </View>
+                        </View>
+
+                        <View style={[GlobalStyleSheet.col50]}>
+                            <View
+                                style={{ opacity: isRmbEnabled && timeValue !== "Cut Off" ? 1 : 0.5 }}
+                                pointerEvents={isRmbEnabled && timeValue !== "Cut Off" ? 'auto' : 'none'}
                             >
                                 <StepperInput
                                     ref={rambolRef}
@@ -517,14 +602,19 @@ const BetPicker: React.FC = (props) => {
                         <View style={[GlobalStyleSheet.col50]}>
                             <Button
                                 color={COLORS.primaryLight}
-                                textColor={COLORS.text}
-                                title={'Clear'}
-                                onPress={handleClear}
+                                textColor={COLORS.warning}
+                                title={'Auto Pick'}
+                                onPress={handleAutoPick}
+                                disabled={timeValue === "Cut Off"}
+                                style={{
+                                    opacity: timeValue === "Cut Off" ? 0.5 : 1,
+                                }}
                             />
                         </View>
 
                         <View style={GlobalStyleSheet.col50}>
                             <TouchableOpacity
+                                ref={addButtonRef}
                                 style={[
                                     styles.iconButton,
                                     {
@@ -604,14 +694,21 @@ const BetPicker: React.FC = (props) => {
         setAmtValue(amtOptions[0]);
         setRmbIndex(0);
         setRmbValue(rmbOptions[0]);
-        setTimeIndex(0);
-        setTimeValue(timeOptions[0]);
-        setDrawIndex(0);
-        setDrawValue(filteredDrawOptions[0]);
+
+        setTimeIndex(lastTimeIndex.current);
+        setTimeValue(timeOptions[lastTimeIndex.current]);
+
+        const updatedDrawOptions = drawOptionsMap[timeOptions[lastTimeIndex.current]];
+        setFilteredDrawOptions(updatedDrawOptions);
+
+        const lastDraw = lastDrawIndexMap.current[timeOptions[lastTimeIndex.current]] ?? 0;
+        setDrawIndex(lastDraw);
+        setDrawValue(updatedDrawOptions[lastDraw]);
 
         if(!isBet)
         {
             setAllBets([]);
+            setDisplayedBetCount(0);
         }
 
     };
@@ -643,8 +740,39 @@ const BetPicker: React.FC = (props) => {
                     marginBottom: 10,
                 }}
             >
-                <HeaderBet amount={amount} pay={pay} betCount={allBets.length} onPressViewAll={() => setShowBetsModal(true)} />
+                <HeaderBet amount={amount} pay={pay} betCount={displayedBetCount} onPressViewAll={() => setShowBetsModal(true)} cartRef={cartRef} />
             </View>
+
+            {showFly && (
+                <Animated.View
+                    style={{
+                        position: 'absolute',
+                        top: -45,
+                        left: 14,
+                        width: 18,
+                        height: 18,
+                        borderRadius: 10,
+                        backgroundColor: COLORS.danger,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        transform: [
+                            { translateX: flyAnim.x },
+                            { translateY: flyAnim.y },
+                        ],
+                        zIndex: 999,
+                    }}
+                >
+                    <Text style={{
+                        ...FONTS.h6,
+                        fontSize: 11,
+                        color: COLORS.white,
+                        textAlign: 'center',
+                    }}>
+                        {allBets.length}
+                    </Text>
+                </Animated.View>
+            )}
+
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : undefined}
                 style={{ flex: 1 }}
@@ -805,14 +933,14 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
-    autoPickButton: {
+    handleClear: {
         position: 'absolute',
         right: 0,
         top: '20%',
-        transform: [{ translateY: -12 }], // vertically center
+        transform: [{ translateY: -12 }],
         padding: 5,
         borderRadius: "100%",
-        backgroundColor: COLORS.warning,
+        backgroundColor: COLORS.darkBackground,
         justifyContent: 'center',
         alignItems: 'center',
     },
