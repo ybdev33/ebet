@@ -43,7 +43,7 @@ const BetPicker: React.FC = (props) => {
             availableTimes.push("2 PM", "5 PM", "9 PM");
         } else if (current >= 1345 && current <= 1645) {
             availableTimes.push("5 PM", "9 PM");
-        } else if (current >= 1645 && current <= 2145) {
+        } else if (current >= 1645 && current <= 2345) {
             availableTimes.push("9 PM");
         } else {
             availableTimes.push("Cut Off");
