@@ -133,7 +133,7 @@ const SignUp: React.FC<SignInProps> = ({navigation, route }) => {
                 <Image
                     source={IMAGES.logoFullWhite}
                     style={{
-                        width: 180,
+                        width: 300,
                         resizeMode: 'contain',
                         marginBottom: 20,
                     }}

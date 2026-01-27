@@ -165,7 +165,7 @@ function Sidebar({ navigation }) {
                     paddingVertical:20,
                 }}
             >
-                <Text style={{...FONTS.h6,color:colors.title,marginBottom:5}}>E-Bet</Text>
+                <Text style={{...FONTS.h6,color:colors.title,marginBottom:5}}>LuckyFortune</Text>
             </View>
         </View>
     );

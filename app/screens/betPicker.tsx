@@ -61,7 +61,8 @@ const BetPicker: React.FC = (props) => {
         "Cut Off": ["---"],
         "2 PM": ["S2", "S3"],
         "5 PM": ["S2", "S3"],
-        "9 PM": ["S2", "S3", "L2", "L3", "4D", "P3"],
+//         "9 PM": ["S2", "S3", "L2", "L3", "4D", "P3"],
+        "9 PM": ["S2", "S3", "EZ2", "4D", "P3"],
     };
     const [filteredDrawOptions, setFilteredDrawOptions] = useState<string[]>(drawOptionsMap[availableTimes[0]]);
     const [drawIndex, setDrawIndex] = useState(0);
@@ -132,6 +133,7 @@ const BetPicker: React.FC = (props) => {
             S3: 3,
             L2: 2,
             L3: 3,
+            EZ2: 4,
             '4D': 4,
             P3: 6,
         };
@@ -152,11 +154,19 @@ const BetPicker: React.FC = (props) => {
         const updatedSelection = [...selectedNumbers];
 
         for (let i = 0; i < drawCount; i++) {
-            updatedSelection[i] = gridNumbers[i][Math.floor(Math.random() * gridNumbers[i].length)];
+            // EZ2-specific auto pick
+            if (drawValue === "EZ2" && ez2AllowedDigits[i]) {
+                const allowed = ez2AllowedDigits[i];
+                updatedSelection[i] =
+                    allowed[Math.floor(Math.random() * allowed.length)];
+            } else {
+                // normal auto pick
+                updatedSelection[i] =
+                    gridNumbers[i][Math.floor(Math.random() * gridNumbers[i].length)];
+            }
         }
 
         setSelectedNumbers(updatedSelection);
-
         targetRef.current?.focus();
     };
 
@@ -401,27 +411,56 @@ const BetPicker: React.FC = (props) => {
         }, 300);
     }, [allBets]);
 
-    const renderGridRow = ({item: row, index: rowIndex}: { item: number[]; index: number }) => {
-        const isDisabled = rowIndex >= getDrawLength();
+    const ez2AllowedDigits: Record<number, number[]> = {
+        0: [0, 1, 2, 3, 4],
+        1: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+        2: [0, 1, 2, 3, 4],
+        3: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    };
+
+    const renderGridRow = ({ item: row, index: rowIndex }: { item: number[]; index: number }) => {
+        const drawLength = getDrawLength();
+        const isRowDisabled = rowIndex >= drawLength;
 
         return (
             <View key={`row-${rowIndex}`} style={styles.gridRow}>
-                {row.map((number) => (
-                    <TouchableOpacity
-                        key={number}
-                        style={[
-                            styles.gridCell,
-                            selectedNumbers[rowIndex] === number && !isDisabled && styles.gridCellActive,
-                            isDisabled && styles.gridCellDisabled,
-                        ]}
-                        onPress={() => handleSelectNumber(rowIndex, number)}
-                        disabled={isDisabled}
-                    >
-                        <Text style={[styles.gridCellText, isDisabled && styles.gridCellTextDisabled]}>
-                            {number}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
+                {row.map((number) => {
+
+                    // EZ2 digit rule
+                    const isEz2 = drawValue === "EZ2";
+                    const ez2Allowed =
+                        isEz2 &&
+                        rowIndex < 4 &&
+                        ez2AllowedDigits[rowIndex]?.includes(number);
+
+                    const isDisabled =
+                        isRowDisabled ||
+                        (isEz2 && !ez2Allowed);
+
+                    return (
+                        <TouchableOpacity
+                            key={number}
+                            style={[
+                                styles.gridCell,
+                                selectedNumbers[rowIndex] === number &&
+                                    !isDisabled &&
+                                    styles.gridCellActive,
+                                isDisabled && styles.gridCellDisabled,
+                            ]}
+                            onPress={() => handleSelectNumber(rowIndex, number)}
+                            disabled={isDisabled}
+                        >
+                            <Text
+                                style={[
+                                    styles.gridCellText,
+                                    isDisabled && styles.gridCellTextDisabled,
+                                ]}
+                            >
+                                {number}
+                            </Text>
+                        </TouchableOpacity>
+                    );
+                })}
             </View>
         );
     };

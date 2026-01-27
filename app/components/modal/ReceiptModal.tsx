@@ -115,7 +115,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
 
             const receiptText = generateReceiptText({
                 header: "Philippine Online Sweepstakes",
-                appName: "eBet",
+                appName: "luckyfortune.com",
                 officialText: "OFFICIAL RECEIPT",
                 betTime: formatBetTime(betTime),
                 items,
