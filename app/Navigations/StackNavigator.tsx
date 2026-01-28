@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createStackNavigator, CardStyleInterpolators } from '@react-navigation/stack';
-import { StatusBar } from "react-native";
+import { StatusBar, Platform } from "react-native";
 import { useTheme, NavigationContainerRef } from "@react-navigation/native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -16,8 +16,11 @@ import BetPicker from "../screens/betPicker";
 import Users from '../screens/users';
 import PrinterScreen from '../screens/printerScreen';
 import { getSession } from '../helpers/sessionHelper';
+import Constants from 'expo-constants';
 
 const Stack = createStackNavigator();
+
+const { GAMING_NAME } = Constants.expoConfig?.extra || {};
 
 // Utility: Get deepest active route recursively
 const getActiveRoutePath = (state: any): string => {
@@ -86,12 +89,31 @@ const StackNavigator: React.FC = () => {
     initialize();
   }, []);
 
+  const routeTitleMap: Record<string, string> = {
+    Home: 'Home',
+    drawernavigation: 'Home',
+    Account: 'Account',
+    History: 'History',
+    Referral: 'Referral',
+    Users: 'Users',
+    PrinterScreen: 'Printer',
+  };
+
   // Save actual route changes
   const handleStateChange = async (state: any) => {
     if (!state) return;
+
     const fullPath = getActiveRoutePath(state);
+
     if (fullPath) {
       await AsyncStorage.setItem('lastRoute', fullPath);
+
+      if (Platform.OS === 'web') {
+        const parts = fullPath.split('/');
+        const last = parts[parts.length - 1];
+
+        document.title = `${routeTitleMap[last] || last} | ${GAMING_NAME}`;
+      }
     }
   };
 

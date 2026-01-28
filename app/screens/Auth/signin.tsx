@@ -293,11 +293,6 @@ const SignIn: React.FC<SignInProps> = ({ navigation }) => {
                                     </View>
                                     <Text style={{ ...FONTS.font, color: colors.text }}>Remember Me</Text>
                                 </Animatable.View>
-                                <Animatable.View animation="fadeInRight" duration={1000} delay={1200}>
-                                    <TouchableOpacity onPress={() => navigation.navigate('emailverify')}>
-                                        <Text style={{ ...FONTS.font, color: COLORS.primary }}>Forgot Password</Text>
-                                    </TouchableOpacity>
-                                </Animatable.View>
                             </View>
                             <Animatable.View animation="fadeInUp" duration={1000} delay={1200}>
                                 <CustomButton onPress={handleSignIn} title="Sign In" />

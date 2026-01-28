@@ -382,8 +382,7 @@ const BetPicker: React.FC = (props) => {
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `ebonline ${GAMING_API}`,
-                },
-                body: body
+                }
             });
             const result = await response.json();
 

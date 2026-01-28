@@ -15,6 +15,9 @@ export default {
             GAMING_DOMAIN: process.env.GAMING_DOMAIN,
             GAMING_API: process.env.GAMING_API
         },
+        web: {
+          favicon: './assets/favicon.png'
+        },
         android: {
             package: "com.ybdev33.ebet",
             permissions: [
