@@ -23,7 +23,7 @@ import Constants from "expo-constants";
 import {getSession} from "@/app/helpers/sessionHelper";
 import SuccessModal from "@/app/components/modal/SuccessModal";
 
-const { GAMING_DOMAIN } = Constants.expoConfig?.extra || {};
+const { GAMING_DOMAIN, GAMING_API } = Constants.expoConfig?.extra || {};
 
 const BetPicker: React.FC = (props) => {
     const {colors} = useTheme();
@@ -312,7 +312,7 @@ const BetPicker: React.FC = (props) => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    // Authorization: 'Settings a2luZ3MzOiF0ZXJ5U3dldGk=',
+                    Authorization: `ebonline ${GAMING_API}`,
                 },
                 body: body
             });
@@ -377,7 +377,14 @@ const BetPicker: React.FC = (props) => {
             const user = await getSession('userSession');
             const userId = user.data.userId;
 
-            const response = await fetch(`${GAMING_DOMAIN}/api/LoadManagement/GetUserLoad?authorId=${userId}`);
+            const response = await fetch(`${GAMING_DOMAIN}/api/LoadManagement/GetUserLoad?authorId=${userId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `ebonline ${GAMING_API}`,
+                },
+                body: body
+            });
             const result = await response.json();
 
             if (response.ok) {
@@ -500,20 +507,35 @@ const BetPicker: React.FC = (props) => {
                                             value={num !== -1 ? num.toString() : ""}
                                             onChangeText={(text) => {
                                                 const updated = [...selectedNumbers];
+
                                                 if (text === "" || text === "\u200B") {
                                                     updated[index] = -1;
                                                     setSelectedNumbers(updated);
                                                     return;
                                                 }
+
                                                 const n = parseInt(text, 10);
-                                                if (!isNaN(n)) {
-                                                    updated[index] = n;
-                                                    setSelectedNumbers(updated);
-                                                    for (let next = index + 1; next < selectedNumbers.length; next++) {
-                                                        if (next < getDrawLength()) {
-                                                            inputRefs.current[next]?.focus();
-                                                            break;
-                                                        }
+                                                if (isNaN(n)) return;
+
+                                                // ✅ EZ2 validation (ONLY here)
+                                                if (
+                                                    drawValue === "EZ2" &&
+                                                    index < 4 &&
+                                                    ez2AllowedDigits[index] &&
+                                                    !ez2AllowedDigits[index].includes(n)
+                                                ) {
+                                                    // ❌ invalid EZ2 digit → ignore
+                                                    return;
+                                                }
+
+                                                updated[index] = n;
+                                                setSelectedNumbers(updated);
+
+                                                // move focus forward
+                                                for (let next = index + 1; next < selectedNumbers.length; next++) {
+                                                    if (next < getDrawLength()) {
+                                                        inputRefs.current[next]?.focus();
+                                                        break;
                                                     }
                                                 }
                                             }}

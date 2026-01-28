@@ -19,7 +19,7 @@ import {getSession} from "../helpers/sessionHelper";
 import Constants from "expo-constants";
 
 const Account: React.FC = () => {
-    const { GAMING_DOMAIN } = Constants.expoConfig?.extra || {};
+    const { GAMING_DOMAIN, GAMING_API } = Constants.expoConfig?.extra || {};
     
     const { colors } = useTheme();
     const [focusField, setFocusField] = useState<string | null>(null);
@@ -100,6 +100,7 @@ const Account: React.FC = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    Authorization: `ebonline ${GAMING_API}`,
                 },
                 body: body
             });

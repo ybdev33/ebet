@@ -16,7 +16,7 @@ import Constants from 'expo-constants';
 import {COLORS, FONTS, IMAGES} from "@/app/constants/theme";
 import DrawResult from '../components/DrawResult';
 
-const { GAMING_DOMAIN } = Constants.expoConfig?.extra || {};
+const { GAMING_DOMAIN, GAMING_API } = Constants.expoConfig?.extra || {};
 
 const Home = () => {
 
@@ -44,7 +44,8 @@ const Home = () => {
                                 method: 'GET',
                                 headers: {
                                     'Content-Type': 'application/json',
-                                }
+                                    Authorization: `ebonline ${GAMING_API}`,
+                                },
                             });
 
                             const result = await response.json();
@@ -74,8 +75,8 @@ const Home = () => {
                                 method: 'GET',
                                 headers: {
                                     'Content-Type': 'application/json',
-                                    // Authorization: 'Settings a2luZ3MzOiF0ZXJ5U3dldGk=',
-                                }
+                                    Authorization: `ebonline ${GAMING_API}`,
+                                },
                             });
 
                             const result = await response.json();

@@ -32,7 +32,7 @@ interface SignInProps {
 }
 
 const SignUp: React.FC<SignInProps> = ({navigation, route }) => {
-    const { GAMING_DOMAIN } = Constants.expoConfig?.extra || {};
+    const { GAMING_DOMAIN, GAMING_API } = Constants.expoConfig?.extra || {};
 
     const theme = useTheme();
     const {colors} = useTheme();
@@ -77,7 +77,7 @@ const SignUp: React.FC<SignInProps> = ({navigation, route }) => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    // Authorization: 'Settings a2luZ3MzOiF0ZXJ5U3dldGk=',
+                    Authorization: `ebonline ${GAMING_API}`,
                 },
                 body: body
             });

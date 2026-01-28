@@ -22,7 +22,7 @@ import Constants from "expo-constants";
 import CustomButton from "@/app/components/customButton";
 
 const Users: React.FC = () => {
-    const { GAMING_DOMAIN } = Constants.expoConfig?.extra || {};
+    const { GAMING_DOMAIN, GAMING_API } = Constants.expoConfig?.extra || {};
     const { colors } = useTheme();
 
     const [modalVisible, setModalVisible] = useState(false);
@@ -77,6 +77,7 @@ const Users: React.FC = () => {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
+                        Authorization: `ebonline ${GAMING_API}`,
                     },
                 }
             );
@@ -130,6 +131,7 @@ const Users: React.FC = () => {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        Authorization: `ebonline ${GAMING_API}`,
                     },
                     body: body,
                 }
@@ -166,7 +168,8 @@ const Users: React.FC = () => {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                    }
+                        Authorization: `ebonline ${GAMING_API}`,
+                    },
                 });
 
                 const result = await response.json();

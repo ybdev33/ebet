@@ -20,7 +20,7 @@ import * as Clipboard from 'expo-clipboard';
 import Constants from "expo-constants";
 
 const Referral: React.FC = () => {
-    const { GAMING_DOMAIN } = Constants.expoConfig?.extra || {};
+    const { GAMING_DOMAIN, GAMING_API } = Constants.expoConfig?.extra || {};
 
     const { colors } = useTheme();
 
@@ -41,8 +41,8 @@ const Referral: React.FC = () => {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        // Authorization: 'Settings a2luZ3MzOiF0ZXJ5U3dldGk=',
-                    }
+                        Authorization: `ebonline ${GAMING_API}`,
+                    },
                 });
 
                 const result = await response.json();

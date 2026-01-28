@@ -23,7 +23,7 @@ import SuccessModal from '@/app/components/modal/SuccessModal';
 import ReceiptModal from '@/app/components/modal/ReceiptModal';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-const { GAMING_DOMAIN } = Constants.expoConfig?.extra || {};
+const { GAMING_DOMAIN, GAMING_API } = Constants.expoConfig?.extra || {};
 
 interface AccordionItem {
     id: string;
@@ -68,7 +68,10 @@ const HistoryLoad: React.FC = () => {
 
             const response = await fetch(`${GAMING_DOMAIN}/api/LoadManagement/GetHistoryTransactionDetails?TransactionCode=${referenceId.replace(/^#/, '')}`, {
                 method: 'GET',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `ebonline ${GAMING_API}`,
+                },
             });
 
             const result = await response.json();
@@ -132,7 +135,10 @@ const HistoryLoad: React.FC = () => {
 
                     const response = await fetch(`${GAMING_DOMAIN}/api/LoadManagement/GetHistoryTransaction?authorId=${userId}&date=${date}&type=${tab}`, {
                         method: 'GET',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `ebonline ${GAMING_API}`,
+                        },
                     });
 
                     const result = await response.json();
