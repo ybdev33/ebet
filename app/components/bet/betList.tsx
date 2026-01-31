@@ -54,8 +54,24 @@ class BetList extends React.Component {
         this.setState(prevState => ({expanded: !prevState.expanded}));
     };
 
-    getPermutations = (inputStr) => {
+    getEz2Rambol = (digits) => {
+        if (digits.length !== 4) return [digits];
+
+        const original = digits;
+        const reversed = digits.split('').reverse().join('');
+
+        return original === reversed
+            ? [original]
+            : [original, reversed];
+    };
+
+    getPermutations = (inputStr, draw) => {
         const digitsOnly = inputStr.replace(/\D/g, '');
+
+        if (draw.includes('EZ2')) {
+            return this.getEz2Rambol(digitsOnly);
+        }
+
         const results = [];
 
         const permute = (arr, m = []) => {
@@ -78,7 +94,9 @@ class BetList extends React.Component {
         const {combination, amount, draw, isRmb, theme} = this.props;
         const {expanded} = this.state;
 
-        const permutations = isRmb ? this.getPermutations(combination) : [];
+        const permutations = isRmb
+            ? this.getPermutations(combination, draw)
+            : [];
 
         return (
             <Swipeable

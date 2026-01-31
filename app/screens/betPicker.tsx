@@ -46,7 +46,8 @@ const BetPicker: React.FC = (props) => {
         } else if (current >= 1645 && current <= 2345) {
             availableTimes.push("9 PM");
         } else {
-            availableTimes.push("Cut Off");
+//             availableTimes.push("Cut Off");
+            availableTimes.push("9 PM");
         }
 
         return availableTimes;
@@ -149,24 +150,28 @@ const BetPicker: React.FC = (props) => {
     };
 
     const handleAutoPick = () => {
-        const drawCount = getDrawLength();
-        const updatedSelection = [...selectedNumbers];
+      const drawCount = getDrawLength();
+      const updated = [...selectedNumbers];
 
-        for (let i = 0; i < drawCount; i++) {
-            // EZ2-specific auto pick
-            if (drawValue === "EZ2" && ez2AllowedDigits[i]) {
-                const allowed = ez2AllowedDigits[i];
-                updatedSelection[i] =
-                    allowed[Math.floor(Math.random() * allowed.length)];
-            } else {
-                // normal auto pick
-                updatedSelection[i] =
-                    gridNumbers[i][Math.floor(Math.random() * gridNumbers[i].length)];
-            }
+      for (let i = 0; i < drawCount; i++) {
+        if (drawValue === "EZ2") {
+          const allowed = getEz2AllowedDigits(i, updated);
+
+          if (!allowed || allowed.length === 0) {
+            updated[i] = -1;
+            continue;
+          }
+
+          updated[i] = allowed[Math.floor(Math.random() * allowed.length)];
+        } else {
+          updated[i] =
+            gridNumbers[i][Math.floor(Math.random() * gridNumbers[i].length)];
         }
+      }
 
-        setSelectedNumbers(updatedSelection);
-        targetRef.current?.focus();
+      setSelectedNumbers(updated);
+
+      targetRef.current?.focus();
     };
 
     const [allBets, setAllBets] = useState<any[]>([]);
@@ -416,11 +421,28 @@ const BetPicker: React.FC = (props) => {
         }, 300);
     }, [allBets]);
 
-    const ez2AllowedDigits: Record<number, number[]> = {
-        0: [0, 1, 2, 3, 4],
-        1: [1, 2, 3, 4, 5, 6, 7, 8, 9],
-        2: [0, 1, 2, 3, 4],
-        3: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+    const getEz2AllowedDigits = (
+      index: number,
+      selected: number[]
+    ): number[] => {
+      // base rules
+      const base: Record<number, number[]> = {
+        0: [0, 1, 2, 3],
+        1: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        2: [0, 1, 2, 3],
+        3: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+      };
+
+      // 🔥 special rules
+      if (index === 1 && selected[0] === 3) {
+        return [0, 1];
+      }
+
+      if (index === 3 && selected[2] === 3) {
+        return [0, 1];
+      }
+
+      return base[index] ?? [];
     };
 
     const renderGridRow = ({ item: row, index: rowIndex }: { item: number[]; index: number }) => {
@@ -434,9 +456,9 @@ const BetPicker: React.FC = (props) => {
                     // EZ2 digit rule
                     const isEz2 = drawValue === "EZ2";
                     const ez2Allowed =
-                        isEz2 &&
-                        rowIndex < 4 &&
-                        ez2AllowedDigits[rowIndex]?.includes(number);
+                      isEz2 &&
+                      rowIndex < 4 &&
+                      getEz2AllowedDigits(rowIndex, selectedNumbers).includes(number);
 
                     const isDisabled =
                         isRowDisabled ||
@@ -515,21 +537,17 @@ const BetPicker: React.FC = (props) => {
                                                 const n = parseInt(text, 10);
                                                 if (isNaN(n)) return;
 
-                                                // ✅ EZ2 validation (ONLY here)
                                                 if (
-                                                    drawValue === "EZ2" &&
-                                                    index < 4 &&
-                                                    ez2AllowedDigits[index] &&
-                                                    !ez2AllowedDigits[index].includes(n)
+                                                  drawValue === "EZ2" &&
+                                                  index < 4 &&
+                                                  !getEz2AllowedDigits(index, selectedNumbers).includes(n)
                                                 ) {
-                                                    // ❌ invalid EZ2 digit → ignore
-                                                    return;
+                                                  return;
                                                 }
 
                                                 updated[index] = n;
                                                 setSelectedNumbers(updated);
 
-                                                // move focus forward
                                                 for (let next = index + 1; next < selectedNumbers.length; next++) {
                                                     if (next < getDrawLength()) {
                                                         inputRefs.current[next]?.focus();
