@@ -59,9 +59,8 @@ const BetPicker: React.FC = (props) => {
 
     const drawOptionsMap: { [key: string]: string[] } = {
         "Cut Off": ["---"],
-        "2 PM": ["S2", "S3"],
-        "5 PM": ["S2", "S3"],
-//         "9 PM": ["S2", "S3", "L2", "L3", "4D", "P3"],
+        "2 PM": ["S2", "S3", "EZ2"],
+        "5 PM": ["S2", "S3", "EZ2"],
         "9 PM": ["S2", "S3", "EZ2", "4D", "P3"],
     };
     const [filteredDrawOptions, setFilteredDrawOptions] = useState<string[]>(drawOptionsMap[availableTimes[0]]);
@@ -75,7 +74,7 @@ const BetPicker: React.FC = (props) => {
     const rmbOptions = ["", "1", "5", "10", "15", "20", "25", "30"];
     const [rmbIndex, setRmbIndex] = useState(0);
     const [rmbValue, setRmbValue] = useState(rmbOptions[rmbIndex]);
-    const isRmbEnabled = drawValue === "L3" || drawValue === "S3";
+    const isRmbEnabled = drawValue === "S2" || drawValue === "S3" || drawValue === "EZ2" || drawValue === "4D";
 
     const gridNumbers = Array.from({length: 6}, () =>
         Array.from({length: 10}, (_, colIndex) => colIndex)
