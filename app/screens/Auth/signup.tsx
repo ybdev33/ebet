@@ -32,7 +32,18 @@ interface SignInProps {
 }
 
 const SignUp: React.FC<SignInProps> = ({navigation, route }) => {
-    const { GAMING_DOMAIN, GAMING_API } = Constants.expoConfig?.extra || {};
+    const {
+        GAMING_DOMAIN,
+        GAMING_DEV,
+        GAMING_API,
+    } = Constants.expoConfig?.extra || {};
+
+    const detectedPort = typeof window !== 'undefined' ? window.location.port : '';
+
+    const API_DOMAIN =
+        (detectedPort === '8081' || detectedPort === '6049') && GAMING_DEV
+            ? GAMING_DEV
+            : GAMING_DOMAIN;
 
     const theme = useTheme();
     const {colors} = useTheme();
@@ -73,7 +84,7 @@ const SignUp: React.FC<SignInProps> = ({navigation, route }) => {
                 position: userType
             });
 
-            const response = await fetch(`${GAMING_DOMAIN}/api/ApplicationUsers/CreateUser`, {
+            const response = await fetch(`${API_DOMAIN}/api/ApplicationUsers/CreateUser`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

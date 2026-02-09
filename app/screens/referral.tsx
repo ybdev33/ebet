@@ -20,7 +20,18 @@ import * as Clipboard from 'expo-clipboard';
 import Constants from "expo-constants";
 
 const Referral: React.FC = () => {
-    const { GAMING_DOMAIN, GAMING_API } = Constants.expoConfig?.extra || {};
+    const {
+        GAMING_DOMAIN,
+        GAMING_DEV,
+        GAMING_API,
+    } = Constants.expoConfig?.extra || {};
+
+    const detectedPort = typeof window !== 'undefined' ? window.location.port : '';
+
+    const API_DOMAIN =
+        (detectedPort === '8081' || detectedPort === '6049') && GAMING_DEV
+            ? GAMING_DEV
+            : GAMING_DOMAIN;
 
     const { colors } = useTheme();
 
@@ -37,7 +48,7 @@ const Referral: React.FC = () => {
                 const userId = userSession.data.userId;
                 const positionId = userSession.data.positionId;
 
-                const response = await fetch(`${GAMING_DOMAIN}/api/ApplicationUsers/GetReferralLink?AuthorId=${userId}&PositionId=${positionId}`, {
+                const response = await fetch(`${API_DOMAIN}/api/ApplicationUsers/GetReferralLink?AuthorId=${userId}&PositionId=${positionId}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',

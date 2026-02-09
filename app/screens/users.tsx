@@ -22,7 +22,19 @@ import Constants from "expo-constants";
 import CustomButton from "@/app/components/customButton";
 
 const Users: React.FC = () => {
-    const { GAMING_DOMAIN, GAMING_API } = Constants.expoConfig?.extra || {};
+    const {
+        GAMING_DOMAIN,
+        GAMING_DEV,
+        GAMING_API,
+    } = Constants.expoConfig?.extra || {};
+
+    const detectedPort = typeof window !== 'undefined' ? window.location.port : '';
+
+    const API_DOMAIN =
+        (detectedPort === '8081' || detectedPort === '6049') && GAMING_DEV
+            ? GAMING_DEV
+            : GAMING_DOMAIN;
+
     const { colors } = useTheme();
 
     const [modalVisible, setModalVisible] = useState(false);
@@ -72,7 +84,7 @@ const Users: React.FC = () => {
             const userId = userSession.data.userId;
 
             const response = await fetch(
-                `${GAMING_DOMAIN}/api/LoadManagement/GetUserLoad?authorId=${userId}`,
+                `${API_DOMAIN}/api/LoadManagement/GetUserLoad?authorId=${userId}`,
                 {
                     method: 'GET',
                     headers: {
@@ -114,7 +126,12 @@ const Users: React.FC = () => {
         }
     };
 
+    const [isSending, setIsSending] = useState(false);
+
     const handleSendPress = async () => {
+        if (isSending) return;
+        setIsSending(true);
+
         try {
             const userSession = await getSession('userSession');
             const userId = userSession.data.userId;
@@ -126,7 +143,7 @@ const Users: React.FC = () => {
             });
 
             const response = await fetch(
-                `${GAMING_DOMAIN}/api/LoadManagement/CreateLoadUser`,
+                `${API_DOMAIN}/api/LoadManagement/CreateLoadUser`,
                 {
                     method: 'POST',
                     headers: {
@@ -140,7 +157,14 @@ const Users: React.FC = () => {
             const result = await response.json();
 
             if (response.ok && result.status === 1) {
-                setModalMessage(result.message);
+                setModalMessage(
+                    <Text style={{ fontSize: 18, textAlign: 'center' }}>
+                        <Text>Successfully sent </Text>
+                        <Text style={{ color: COLORS.success, fontWeight: 'bold' }}>
+                            ₱{sendAmount} to {selectedUser?.completeName} 🎉
+                        </Text>
+                    </Text>
+                );
                 setIsSuccess(true);
                 setModalVisible(true);
                 setTopUpModalVisible(false);
@@ -155,6 +179,8 @@ const Users: React.FC = () => {
             setModalMessage('Something went wrong. Please try again later.');
             setIsSuccess(false);
             setModalVisible(true);
+        } finally {
+            setIsSending(false);
         }
     };
 
@@ -164,7 +190,7 @@ const Users: React.FC = () => {
                 const userSession = await getSession('userSession');
                 const userId = userSession.data.userId;
 
-                const response = await fetch(`${GAMING_DOMAIN}/api/ApplicationUsers/GetUserByAuthorId?AuthorId=${userId}`, {
+                const response = await fetch(`${API_DOMAIN}/api/ApplicationUsers/GetUserByAuthorId?AuthorId=${userId}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -367,6 +393,19 @@ const Users: React.FC = () => {
                     }}
                 >
                     <View style={{ ...styles.container, backgroundColor: colors.background }}>
+                        {(detectedPort === '8081' || detectedPort === '6049') && (
+                            <Text
+                                style={{
+                                    backgroundColor: '#9a000f',
+                                    color: '#fff',
+                                    fontSize: 15,
+                                    textAlign: 'center',
+                                    paddingVertical: 5,
+                                }}
+                            >
+                                ⚠️ You are running in DEV Mode
+                            </Text>
+                        )}
                         <HeaderBar
                             leftIcon="back"
                             title={`Top-Up: ${selectedUser?.completeName ?? ''}`}

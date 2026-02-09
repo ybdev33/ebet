@@ -183,104 +183,127 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({
 
     return (
         <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
-            <TouchableWithoutFeedback onPress={onClose}>
-                <View style={styles.overlay}>
-                    <View style={styles.backgroundContainer}>
-                        <Image
-                            source={IMAGES.luckySwerty}
-                            style={styles.repeatingBackground}
-                            resizeMode="repeat"
-                        />
+            <View style={styles.overlay}>
 
-                        <ScrollView contentContainerStyle={styles.container}>
-                            <Text style={styles.header}>Philippine Online Sweepstakes</Text>
-                            <Text style={styles.subHeader}>{GAMING_NAME || "eBet App"}</Text>
-                            <Text style={styles.receiptLabel}>OFFICIAL RECEIPT</Text>
+                  <TouchableWithoutFeedback onPress={onClose}>
+                    <View style={styles.backdrop} />
+                  </TouchableWithoutFeedback>
 
-                            <Text style={styles.info}>Bet Time: {formatBetTime(betTime)}</Text>
+                <View style={styles.backgroundContainer}>
+                    <Image
+                        source={IMAGES.luckySwerty}
+                        style={styles.repeatingBackground}
+                        resizeMode="repeat"
+                    />
 
-                            <View style={styles.table}>
-                                <View style={[styles.row, styles.headerRow]}>
-                                    <Text style={[styles.cell, styles.headerCell, styles.betCell]}>Bet</Text>
-                                    <Text style={[styles.cell, styles.headerCell, styles.amountCell]}>Amount</Text>
-                                    <Text style={[styles.cell, styles.headerCell, styles.drawCell]}>Draw</Text>
-                                    <Text style={[styles.cell, styles.headerCell, styles.winCell]}>Win</Text>
-                                </View>
+                    <ScrollView
+                      style={{ width: '100%' }}
+                      contentContainerStyle={styles.scrollContent}
+                      showsVerticalScrollIndicator={true}
+                      keyboardShouldPersistTaps="handled"
+                      nestedScrollEnabled
+                    >
+                        <View style={styles.receiptHeader}>
+                          <Text style={styles.header}>Philippine Online Sweepstakes</Text>
+                          <Text style={styles.subHeader}>{GAMING_NAME || "eBet App"}</Text>
+                          <Text style={styles.receiptLabel}>OFFICIAL RECEIPT</Text>
+                        </View>
 
-                                {combinations.map((combo, index) => (
-                                    <View key={index} style={styles.row}>
+                        <Text style={styles.info}>Bet Time: {formatBetTime(betTime)}</Text>
 
-                                        <Text style={[styles.cell, styles.betCell]}>{combo.label}</Text>
-                                        <Text style={[styles.cell, styles.amountCell]}>₱{combo.amount}</Text>
-                                        <Text style={[styles.cell, styles.drawCell]}>{combo.draw}</Text>
-                                        <Text style={[styles.cell, styles.winCell]}>₱{combo.win}</Text>
-                                    </View>
-                                ))}
+                        <View style={styles.table}>
+                            <View style={[styles.row, styles.headerRow]}>
+                                <Text style={[styles.cell, styles.headerCell, styles.betCell]}>Bet</Text>
+                                <Text style={[styles.cell, styles.headerCell, styles.amountCell]}>Amount</Text>
+                                <Text style={[styles.cell, styles.headerCell, styles.drawCell]}>Draw</Text>
+                                <Text style={[styles.cell, styles.headerCell, styles.winCell]}>Win</Text>
                             </View>
 
-                            <Text style={styles.total}>Total: ₱{typeof total === 'number' ? total.toFixed(2) : '0.00'}</Text>
+                            {combinations.map((combo, index) => (
+                                <View key={index} style={styles.row}>
 
-                            <View style={styles.qrSection}>
-                                <QRCode value={reference} size={60} />
-                                <Text style={styles.reference}>REFERENCE NUMBER</Text>
-                                <Text style={styles.referenceValue}>{reference}</Text>
-                            </View>
-
-                            {Platform.OS !== "web" && (
-                                <>
-                                    <TouchableOpacity
-                                        onPress={async () => {
-                                            setIsPrinting(true);
-                                            setPrintError(null); // Clear previous runtime errors
-                                            try {
-                                                await printReceipt();
-                                            } catch (e) {
-                                                console.error("Manual print failed:", e);
-                                                const errorMessage = e instanceof Error ? e.message : "Failed to print.";
-                                                setPrintError(errorMessage); // Set the error for display
-                                            } finally {
-                                                setIsPrinting(false);
-                                            }
-                                        }}
-                                        style={[
-                                            styles.printButton,
-                                            (!printerReady || isPrinting) && { opacity: 0.4, backgroundColor: COLORS.dark }
-                                        ]}
-                                        disabled={!printerReady || isPrinting}
+                                    <Text style={[styles.cell, styles.betCell]}>{combo.label}</Text>
+                                    <Text style={[styles.cell, styles.amountCell]}>₱{combo.amount}</Text>
+                                    <Text style={[styles.cell, styles.drawCell]}>{combo.draw}</Text>
+                                    <Text
+                                      style={[
+                                        styles.cell,
+                                        styles.winCell,
+                                        combo.win === 0 && styles.soldOutText,
+                                      ]}
                                     >
-                                        {isPrinting || !printerReady ? (
-                                            <ActivityIndicator size="small" color="#fff" />
-                                        ) : (
-                                            <Text style={[FONTS.h6, { color: COLORS.white }]}>Print 🖨️</Text>
-                                        )}
-                                    </TouchableOpacity>
+                                      {combo.win === 0 ? 'S/Out' : `₱${combo.win}`}
+                                    </Text>
+                                </View>
+                            ))}
+                        </View>
 
-                                    {(connectionError || printError) && (
-                                        <Text style={styles.errorText}>
-                                            {connectionError || printError}
-                                        </Text>
+                        <Text style={styles.total}>Total: ₱{typeof total === 'number' ? total.toFixed(2) : '0.00'}</Text>
+
+                        <View style={styles.qrSection}>
+                            <QRCode value={reference} size={60} />
+                            <Text style={styles.reference}>REFERENCE NUMBER</Text>
+                            <Text style={styles.referenceValue}>{reference}</Text>
+                        </View>
+
+                        {Platform.OS !== "web" && (
+                            <>
+                                <TouchableOpacity
+                                    onPress={async () => {
+                                        setIsPrinting(true);
+                                        setPrintError(null); // Clear previous runtime errors
+                                        try {
+                                            await printReceipt();
+                                        } catch (e) {
+                                            console.error("Manual print failed:", e);
+                                            const errorMessage = e instanceof Error ? e.message : "Failed to print.";
+                                            setPrintError(errorMessage); // Set the error for display
+                                        } finally {
+                                            setIsPrinting(false);
+                                        }
+                                    }}
+                                    style={[
+                                        styles.printButton,
+                                        (!printerReady || isPrinting) && { opacity: 0.4, backgroundColor: COLORS.dark }
+                                    ]}
+                                    disabled={!printerReady || isPrinting}
+                                >
+                                    {isPrinting || !printerReady ? (
+                                        <ActivityIndicator size="small" color="#fff" />
+                                    ) : (
+                                        <Text style={[FONTS.h6, { color: COLORS.white }]}>Print 🖨️</Text>
                                     )}
-                                </>
-                            )}
-                        </ScrollView>
-                    </View>
+                                </TouchableOpacity>
+
+                                {(connectionError || printError) && (
+                                    <Text style={styles.errorText}>
+                                        {connectionError || printError}
+                                    </Text>
+                                )}
+                            </>
+                        )}
+                    </ScrollView>
                 </View>
-            </TouchableWithoutFeedback>
+            </View>
         </Modal>
     );
 };
 
 const styles = StyleSheet.create({
     overlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.6)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        position: 'relative',
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.6)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    backdrop: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.6)',
     },
     backgroundContainer: {
         width: '90%',
         maxWidth: 400,
+        maxHeight: '95%',
         padding: 0,
         borderRadius: 10,
         overflow: 'hidden',
@@ -288,6 +311,13 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         backgroundColor: 'rgba(255,255,255,0.95)',
         position: 'relative',
+    },
+    scrollContent: {
+      marginHorizontal: 25,
+      padding: 20,
+      paddingBottom: 20,
+      flexGrow: 1,
+      alignItems: 'center',
     },
     repeatingBackground: {
         position: 'absolute',
@@ -361,6 +391,9 @@ const styles = StyleSheet.create({
         width: '25%',
         textAlign: 'right',
     },
+    soldOutText: {
+      color: COLORS.danger,
+    },
     headerRow: {
         borderColor: '#ccc',
     },
@@ -423,7 +456,12 @@ const styles = StyleSheet.create({
         color: COLORS.dark, // A neutral color for status
         textAlign: 'center',
         paddingHorizontal: 10,
-    }
+    },
+    receiptHeader: {
+      alignItems: 'center',
+      width: '100%',
+      marginBottom: 10,
+    },
 });
 
 export default ReceiptModal;

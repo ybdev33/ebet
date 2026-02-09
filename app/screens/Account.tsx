@@ -19,7 +19,18 @@ import {getSession} from "../helpers/sessionHelper";
 import Constants from "expo-constants";
 
 const Account: React.FC = () => {
-    const { GAMING_DOMAIN, GAMING_API } = Constants.expoConfig?.extra || {};
+    const {
+        GAMING_DOMAIN,
+        GAMING_DEV,
+        GAMING_API,
+    } = Constants.expoConfig?.extra || {};
+
+    const detectedPort = typeof window !== 'undefined' ? window.location.port : '';
+
+    const API_DOMAIN =
+        (detectedPort === '8081' || detectedPort === '6049') && GAMING_DEV
+            ? GAMING_DEV
+            : GAMING_DOMAIN;
     
     const { colors } = useTheme();
     const [focusField, setFocusField] = useState<string | null>(null);
@@ -96,7 +107,7 @@ const Account: React.FC = () => {
                 password,
             });
 
-            const response = await fetch(`${GAMING_DOMAIN}/api/ApplicationUsers/UpdateUser`, {
+            const response = await fetch(`${API_DOMAIN}/api/ApplicationUsers/UpdateUser`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

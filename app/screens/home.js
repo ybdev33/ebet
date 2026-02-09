@@ -16,7 +16,18 @@ import Constants from 'expo-constants';
 import {COLORS, FONTS, IMAGES} from "@/app/constants/theme";
 import DrawResult from '../components/DrawResult';
 
-const { GAMING_DOMAIN, GAMING_API } = Constants.expoConfig?.extra || {};
+    const {
+        GAMING_DOMAIN,
+        GAMING_DEV,
+        GAMING_API,
+    } = Constants.expoConfig?.extra || {};
+
+    const detectedPort = typeof window !== 'undefined' ? window.location.port : '';
+
+    const API_DOMAIN =
+        (detectedPort === '8081' || detectedPort === '6049') && GAMING_DEV
+            ? GAMING_DEV
+            : GAMING_DOMAIN;
 
 const Home = () => {
 
@@ -40,7 +51,7 @@ const Home = () => {
 
                     const fetchUserLoad = async () => {
                         try {
-                            const response = await fetch(`${GAMING_DOMAIN}/api/LoadManagement/GetUserLoad?authorId=${userId}`, {
+                            const response = await fetch(`${API_DOMAIN}/api/LoadManagement/GetUserLoad?authorId=${userId}`, {
                                 method: 'GET',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -71,7 +82,7 @@ const Home = () => {
                                 date: formattedDate,
                             });
 
-                            const response = await fetch(`${GAMING_DOMAIN}/api/Common/GetDashBoardDetails?authorId=${userId}&date=${formattedDate}`, {
+                            const response = await fetch(`${API_DOMAIN}/api/Common/GetDashBoardDetails?authorId=${userId}&date=${formattedDate}`, {
                                 method: 'GET',
                                 headers: {
                                     'Content-Type': 'application/json',

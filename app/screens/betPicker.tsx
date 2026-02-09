@@ -10,7 +10,7 @@ import {
     Animated,
 } from "react-native";
 import {COLORS, FONTS, SIZES} from "../constants/theme";
-import {useFocusEffect, useTheme} from "@react-navigation/native";
+import {useFocusEffect, useTheme, useNavigation} from "@react-navigation/native";
 import HeaderBet from "@/app/components/Headers/HeaderBet";
 import FeatherIcon from "react-native-vector-icons/Feather";
 import Button from '@/app/components/Button/Button';
@@ -23,7 +23,18 @@ import Constants from "expo-constants";
 import {getSession} from "@/app/helpers/sessionHelper";
 import SuccessModal from "@/app/components/modal/SuccessModal";
 
-const { GAMING_DOMAIN, GAMING_API } = Constants.expoConfig?.extra || {};
+    const {
+        GAMING_DOMAIN,
+        GAMING_DEV,
+        GAMING_API,
+    } = Constants.expoConfig?.extra || {};
+
+    const detectedPort = typeof window !== 'undefined' ? window.location.port : '';
+
+    const API_DOMAIN =
+        (detectedPort === '8081' || detectedPort === '6049') && GAMING_DEV
+            ? GAMING_DEV
+            : GAMING_DOMAIN;
 
 const BetPicker: React.FC = (props) => {
     const {colors} = useTheme();
@@ -39,15 +50,15 @@ const BetPicker: React.FC = (props) => {
 
         const availableTimes: string[] = [];
 
-        if (current >= 500 && current <= 1345) {
+        if (current >= 500 && current <= 1349) {
             availableTimes.push("2 PM", "5 PM", "9 PM");
-        } else if (current >= 1345 && current <= 1645) {
+        } else if (current >= 1350 && current <= 1649) {
             availableTimes.push("5 PM", "9 PM");
-        } else if (current >= 1645 && current <= 2345) {
+        } else if (current >= 1650 && current <= 2049) {
             availableTimes.push("9 PM");
         } else {
-//             availableTimes.push("Cut Off");
-            availableTimes.push("9 PM");
+//             availableTimes.push("9 PM");
+            availableTimes.push("Cut Off");
         }
 
         return availableTimes;
@@ -62,7 +73,7 @@ const BetPicker: React.FC = (props) => {
         "Cut Off": ["---"],
         "2 PM": ["S2", "S3", "EZ2"],
         "5 PM": ["S2", "S3", "EZ2"],
-        "9 PM": ["S2", "S3", "EZ2", "4D", "P3"],
+        "9 PM": ["S2", "S3", "L2", "L3", "EZ2", "4D", "P3"],
     };
     const [filteredDrawOptions, setFilteredDrawOptions] = useState<string[]>(drawOptionsMap[availableTimes[0]]);
     const [drawIndex, setDrawIndex] = useState(0);
@@ -75,7 +86,7 @@ const BetPicker: React.FC = (props) => {
     const rmbOptions = ["", "1", "5", "10", "15", "20", "25", "30"];
     const [rmbIndex, setRmbIndex] = useState(0);
     const [rmbValue, setRmbValue] = useState(rmbOptions[rmbIndex]);
-    const isRmbEnabled = drawValue === "S2" || drawValue === "S3" || drawValue === "EZ2" || drawValue === "4D";
+    const isRmbEnabled = drawValue === "S2" || drawValue === "S3" || drawValue === "L2" || drawValue === "L3" || drawValue === "EZ2" || drawValue === "4D";
 
     const gridNumbers = Array.from({length: 6}, () =>
         Array.from({length: 10}, (_, colIndex) => colIndex)
@@ -126,7 +137,7 @@ const BetPicker: React.FC = (props) => {
             }
         }, 300);
     };
-    
+
     const getDrawLength = () => {
         const drawLengths: { [key: string]: number } = {
             S2: 2,
@@ -293,7 +304,13 @@ const BetPicker: React.FC = (props) => {
     });
     const [autoPrint, setAutoPrint] = useState(false);
 
+    const isPrintingRef = useRef(false);
+
     const handlePrint = async () => {
+
+        if (isPrintingRef.current) return;
+        isPrintingRef.current = true;
+
         try {
             const user = await getSession('userSession');
             const userId = user.data.userId;
@@ -312,36 +329,31 @@ const BetPicker: React.FC = (props) => {
                 bets: betsPayload,
             });
 
-            const response = await fetch(`${GAMING_DOMAIN}/api/Common/CreateUserBet`, {
+            const response = await fetch(`${API_DOMAIN}/api/Common/CreateUserBet`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `ebonline ${GAMING_API}`,
                 },
-                body: body
+                body,
             });
 
             const result = await response.json();
 
             if (response.ok && result.status === 1) {
-
-                const combinations = result.data.bets.map((bet: any) => {
-                    const prefix = bet.isRambol ? 'R' : 'T';
-                    const label = `${prefix} ${bet.winCombination ?? '---'}`;
-                    return {
-                        label,
-                        amount: bet.amount,
-                        draw: bet.drawCategory,
-                        win: bet.winningAmount ?? 0,
-                    };
-                });
+                const combinations = result.data.bets.map((bet: any) => ({
+                    label: `${bet.isRambol ? 'R' : 'T'} ${bet.winCombination ?? '---'}`,
+                    amount: bet.amount,
+                    draw: bet.drawCategory,
+                    win: bet.winningAmount ?? 0,
+                }));
 
                 setReceiptData({
                     drawTime: result.data.drawTime,
                     betTime: result.data.dateTimeServer,
                     combinations,
                     total: result.data.totalAmount,
-                    reference: result.data.transCode
+                    reference: result.data.transCode,
                 });
 
                 await fetchUserLoad();
@@ -360,6 +372,8 @@ const BetPicker: React.FC = (props) => {
             setModalMessage('Something went wrong. Please try again later.');
             setIsSuccess(false);
             setModalVisible(true);
+        } finally {
+            isPrintingRef.current = false;
         }
     };
 
@@ -381,7 +395,7 @@ const BetPicker: React.FC = (props) => {
             const user = await getSession('userSession');
             const userId = user.data.userId;
 
-            const response = await fetch(`${GAMING_DOMAIN}/api/LoadManagement/GetUserLoad?authorId=${userId}`, {
+            const response = await fetch(`${API_DOMAIN}/api/LoadManagement/GetUserLoad?authorId=${userId}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -402,24 +416,51 @@ const BetPicker: React.FC = (props) => {
     };
 
     useFocusEffect(
-        useCallback(() => {
-            let isActive = true;
+      useCallback(() => {
+        let isActive = true;
 
-            (async () => {
-                if (isActive) await fetchUserLoad();
-            })();
+        (async () => {
+          if (isActive) {
+            await fetchUserLoad();
 
-            return () => {
-                isActive = false;
-            };
-        }, [])
+            setTimeout(() => {
+              const drawLength = getDrawLength();
+
+              for (let i = 0; i < drawLength; i++) {
+                if (inputRefs.current[i]) {
+                  inputRefs.current[i]?.focus();
+                  break;
+                }
+              }
+            }, 100);
+          }
+        })();
+
+        return () => {
+          isActive = false;
+        };
+      }, [timeValue, drawValue])
     );
 
+    const navigation = useNavigation();
+
     useEffect(() => {
+      const unsubscribe = navigation.addListener('tabPress', () => {
+
         setTimeout(() => {
-            inputRefs.current[0]?.focus();
-        }, 300);
-    }, [allBets]);
+          const drawLength = getDrawLength();
+
+          for (let i = 0; i < drawLength; i++) {
+            if (inputRefs.current[i]) {
+              inputRefs.current[i]?.focus();
+              break;
+            }
+          }
+        }, 100);
+      });
+
+      return unsubscribe;
+    }, [navigation, drawValue, timeValue]);
 
     const getEz2AllowedDigits = (
       index: number,
@@ -511,7 +552,7 @@ const BetPicker: React.FC = (props) => {
         } else if (item === "selectedNumbers") {
             return (
                 <View style={styles.selectedNumbers}>
-                    <Text style={styles.sectionTitle}>You Selected Numbers</Text>
+                    <Text style={styles.sectionTitle}>Your Selected Numbers</Text>
                     <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', position: 'relative', width: '100%' }}>
                         <View style={styles.numberDisplay}>
                             {selectedNumbers.map((num, index) => {
@@ -556,15 +597,26 @@ const BetPicker: React.FC = (props) => {
                                                 }
                                             }}
                                             onKeyPress={({ nativeEvent }) => {
-                                                if (nativeEvent.key === "Backspace" && selectedNumbers[index] === -1) {
-                                                    const prevIndex = index - 1;
-                                                    if (prevIndex >= 0) {
-                                                        const updated = [...selectedNumbers];
-                                                        updated[prevIndex] = -1;
-                                                        setSelectedNumbers(updated);
-                                                        inputRefs.current[prevIndex]?.focus();
-                                                    }
+                                              if (nativeEvent.key === "Backspace" && selectedNumbers[index] === -1) {
+                                                const prevIndex = index - 1;
+                                                if (prevIndex >= 0) {
+                                                  const updated = [...selectedNumbers];
+                                                  updated[prevIndex] = -1;
+                                                  setSelectedNumbers(updated);
+                                                  inputRefs.current[prevIndex]?.focus();
                                                 }
+                                                return;
+                                              }
+
+                                              if (nativeEvent.key === "Tab") {
+                                                const drawLength = getDrawLength();
+                                                const isLastDigit = index === drawLength - 1;
+
+                                                if (isLastDigit) {
+                                                  nativeEvent.preventDefault?.();
+                                                  targetRef.current?.focus();
+                                                }
+                                              }
                                             }}
                                             onSubmitEditing={() => {
                                                 targetRef.current?.focus();
@@ -645,6 +697,14 @@ const BetPicker: React.FC = (props) => {
                                             handleBet();
                                         }
                                     }}
+                                    onKeyPress={({ nativeEvent }) => {
+                                      if (nativeEvent.key === "Tab") {
+                                        nativeEvent.preventDefault?.();
+                                        if (isRmbEnabled) {
+                                          rambolRef.current?.focus();
+                                        }
+                                      }
+                                    }}
                                     style={{
                                         container: { marginVertical: 8 },
                                         label: { ...FONTS.h6 },
@@ -713,12 +773,12 @@ const BetPicker: React.FC = (props) => {
                             styles.iconButton,
                             {
                                 backgroundColor: COLORS.primary,
-                                opacity: allBets.length > 0 ? 1 : 0.5,
-                                marginTop: 10
+                                opacity: allBets.length > 0 && !isPrintingRef.current ? 1 : 0.5,
+                                marginTop: 10,
                             },
                         ]}
-                        onPress={() => handlePrint()}
-                        disabled={allBets.length === 0}
+                        onPress={handlePrint}
+                        disabled={allBets.length === 0 || isPrintingRef.current}
                     >
                         <Text style={styles.buttonText}>Print</Text>
                         <FeatherIcon name="send" size={16} color={COLORS.title} style={styles.icon} />
@@ -788,6 +848,12 @@ const BetPicker: React.FC = (props) => {
             setDisplayedBetCount(0);
         }
 
+        setTimeout(() => {
+            const indexToFocus = selectedNumbers.findIndex(
+                (val, i) => i < getDrawLength() && val === -1
+            );
+            inputRefs.current[indexToFocus !== -1 ? indexToFocus : 0]?.focus();
+        }, 50);
     };
 
     return (
@@ -857,7 +923,7 @@ const BetPicker: React.FC = (props) => {
             >
                 <FlatList
                     ref={flatListRef}
-                    data={["selectedNumbers", "grid", "controls"]}
+                    data={["selectedNumbers", "controls"]}
                     renderItem={({item}) => renderContent({item})}
                     keyExtractor={(_, index) => `row-${index}`}
                     contentContainerStyle={{paddingBottom: 70}}
@@ -905,14 +971,14 @@ const styles = StyleSheet.create({
     },
     selectedNumbers: {
         alignItems: "center",
-        marginBottom: 5,
+        marginBottom: 25,
     },
     sectionTitle: {
         ...FONTS.h6,
         color: COLORS.dark,
         textAlign: "center",
         fontSize: 13,
-        marginBottom: 10,
+        marginBottom: 25,
     },
     numberDisplay: {
         flexDirection: "row",
@@ -922,14 +988,14 @@ const styles = StyleSheet.create({
     },
     numberWrapper: {
         alignItems: "center",
-        marginHorizontal: 5,
+        marginHorizontal: 10,
     },
     numberText: {
         color: COLORS.success,
         fontSize: 27,
         fontWeight: "bold",
         textAlign: "center",
-        width: 24
+        width: 27
     },
     underscore: {
         ...FONTS.h6,
@@ -993,16 +1059,16 @@ const styles = StyleSheet.create({
         paddingVertical: 2,
     },
     numberTextInput: {
-        ...FONTS.h5,
-        width: 30,
-        height: 27,
+        ...FONTS.h4,
+        width: 35,
+        height: 30,
         color: COLORS.success,
         textAlign: 'center',
         paddingVertical: 0,
         paddingHorizontal: 0,
     },
     numberTextInputDisabled: {
-        fontSize: 27,
+        fontSize: 30,
         color: COLORS.light,
     },
     modalOverlay: {

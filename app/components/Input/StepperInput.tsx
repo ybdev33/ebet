@@ -25,6 +25,7 @@ interface StepperInputProps {
     editable?: boolean;
     flatListRef?: React.RefObject<FlatList>;
     onSubmitEditing?: () => void;
+    onKeyPress?: (e: any) => void;
 }
 
 const StepperInput = forwardRef<TextInput, StepperInputProps>(
@@ -37,7 +38,8 @@ const StepperInput = forwardRef<TextInput, StepperInputProps>(
          setCurrentIndex,
          editable = true,
          flatListRef,
-         onSubmitEditing
+         onSubmitEditing,
+         onKeyPress,
      }, ref) => {
 
         const inputRef = useRef<TextInput | null>(null);
@@ -98,31 +100,58 @@ const StepperInput = forwardRef<TextInput, StepperInputProps>(
                     <Text style={styles.betText}>{label} </Text>
                     {editable && (
                         <TextInput
-                            ref={inputRef}
-                            style={styles.betInput}
-                            value={value}
-                            onChangeText={(text) => {
-                                const numeric = text.replace(/[^0-9]/g, "");
-                                setValue(numeric);
-                            }}
-                            keyboardType="numeric"
-                            inputMode="numeric"
-                            {...(Platform.OS === "web"
-                                ? {
-                                    type: "number",
-                                    pattern: "[0-9]*",
-                                }
-                                : {})}
-                            onKeyPress={({ nativeEvent }) => {
-                                const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight'];
-                                if (!/[0-9]/.test(nativeEvent.key) && !allowedKeys.includes(nativeEvent.key)) {
-                                    nativeEvent.preventDefault?.();
-                                }
-                            }}
-                            onFocus={handleFocus}
-                            editable={true}
-                            onSubmitEditing={onSubmitEditing}
-                            returnKeyType="done"
+                          ref={inputRef}
+                          style={styles.betInput}
+                          value={value}
+                          onChangeText={(text) => {
+                            const numeric = text.replace(/[^0-9]/g, "");
+                            setValue(numeric);
+                          }}
+                          keyboardType="numeric"
+                          inputMode="numeric"
+                          {...(Platform.OS === "web"
+                            ? {
+                                type: "number",
+                                pattern: "[0-9]*",
+
+                                // 🔥 TAB + KEY FILTER (WEB)
+                                onKeyDown: (e: any) => {
+                                  const allowedKeys = [
+                                    "Backspace",
+                                    "Delete",
+                                    "ArrowLeft",
+                                    "ArrowRight",
+                                    "Tab",
+                                  ];
+
+                                  if (!/[0-9]/.test(e.key) && !allowedKeys.includes(e.key)) {
+                                    e.preventDefault();
+                                    return;
+                                  }
+
+                                  // ⬇ forward TAB to parent
+                                  if (e.key === "Tab") {
+                                    e.preventDefault();
+                                    onKeyPress?.({ nativeEvent: { key: "Tab" } });
+                                  }
+                                },
+                              }
+                            : {})}
+
+                          // 📱 Native (mobile) key handling
+                          onKeyPress={({ nativeEvent }) => {
+                            const allowedKeys = ["Backspace", "Delete"];
+                            if (!/[0-9]/.test(nativeEvent.key) && !allowedKeys.includes(nativeEvent.key)) {
+                              nativeEvent.preventDefault?.();
+                            }
+
+                            onKeyPress?.({ nativeEvent });
+                          }}
+
+                          onFocus={handleFocus}
+                          editable={true}
+                          onSubmitEditing={onSubmitEditing}
+                          returnKeyType="done"
                         />
                     )}
                 </View>
