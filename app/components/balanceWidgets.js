@@ -4,20 +4,20 @@ import {
     Text,
     StyleSheet,
     Image,
-    FlatList,
     Animated,
+    Dimensions,
 } from 'react-native';
-import { useNavigation, useTheme } from '@react-navigation/native';
-import { LineChart } from "react-native-chart-kit";
+import { useTheme } from '@react-navigation/native';
 import Ripple from 'react-native-material-ripple';
 
 import { FONTS, SIZES, COLORS, ICONS } from '../constants/theme';
 import { GlobalStyleSheet } from '../constants/styleSheet';
 
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
 const BalanceWidgets = ({dashData}) => {
 
     const {colors} = useTheme();
-    const navigation = useNavigation();
     const chartWidth = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
@@ -28,7 +28,6 @@ const BalanceWidgets = ({dashData}) => {
                 useNativeDriver:false,
             }).start();
         }, 1000);
-
     }, [dashData]);
 
     const cardData = useMemo(() => {
@@ -41,7 +40,6 @@ const BalanceWidgets = ({dashData}) => {
                 title: "Total Bets",
                 balance: `${dashData.totalBets}`,
                 status: "total",
-                navigate: 'Wallet'
             },
             {
                 id: "2",
@@ -49,76 +47,51 @@ const BalanceWidgets = ({dashData}) => {
                 title: "Total Hits",
                 balance: `${dashData.totalHits}`,
                 status: "hits",
-                navigate: 'hits'
-            },
-            {
-                id: "3",
-                pic: ICONS.pesocom,
-                title: "Total Commission",
-                balance: `${dashData.totalCommission}`,
-                status: "commission",
-                navigate: 'commissions'
-            },
-            {
-                id: "4",
-                pic: ICONS.cancelled,
-                title: "Total Cancelled",
-                balance: `${dashData.totalCancelled}`,
-                status: "cancelled",
-                navigate: 'cancelledBets'
             },
         ];
     }, [dashData]);
 
+    // Each card takes 50% of the screen width minus margin
+    const cardWidth = (SCREEN_WIDTH - 70) / 2; // 10px padding each side + 10px gap
+
     return(
-        <FlatList
-            horizontal
-            contentContainerStyle={{
-                paddingLeft:15,
-                paddingTop:20,
-            }}
-            showsHorizontalScrollIndicator={false}
-            data={cardData}
-            renderItem={({ item }) => (
+        <View style={{ flexDirection: 'row', paddingHorizontal: 10, paddingTop: 20 }}>
+            {cardData.map((item) => (
                 <Ripple
-                    style={[{
-                        width:140,
-                        borderRadius:12,
-                        position:'relative',
-                        backgroundColor:colors.card,
-                        ...GlobalStyleSheet.shadow,
-                        marginBottom:30,
-                        marginRight:12,
-                    }]}
+                    key={item.id}
+                    style={[
+                        {
+                            width: cardWidth,
+                            borderRadius:12,
+                            backgroundColor: colors.card,
+                            ...GlobalStyleSheet.shadow,
+                            paddingHorizontal:15,
+                            paddingVertical:18,
+                            marginBottom: 10,
+                            marginRight: 18,
+                        }
+                    ]}
                 >
-                    <View style={{
-                        paddingHorizontal:15,
-                        paddingVertical:18,
-                    }}>
-                        <View style={[styles.cardIco,{backgroundColor:colors.background,borderWidth:1,borderColor:colors.borderColor}]}>
-                            <Image style={{
-                                width:18,
-                                height:18,
-                                tintColor:item.status === "total" ? COLORS.warning :
-                                    item.status === "cancelled" ? COLORS.danger :
-                                        item.status === "commission" ? COLORS.info :
-                                            item.status === "hits" ? COLORS.success :
-                                                COLORS.primary,
-                            }} source={item.pic}/>
-                        </View>
-                        <Text style={{...FONTS.fontXs,marginBottom:6,color:colors.text}}>{item.title}</Text>
-                        <Text
-                            style={{
-                                ...FONTS.h6,
-                                marginBottom:4,
-                                color:colors.title,
-                            }}
-                        >{item.balance}</Text>
+                    <View style={[styles.cardIco,{backgroundColor:colors.background,borderWidth:1,borderColor:colors.borderColor}]}>
+                        <Image style={{
+                            width:18,
+                            height:18,
+                            tintColor: item.status === "total" ? COLORS.warning :
+                                        item.status === "hits" ? COLORS.success :
+                                        COLORS.primary,
+                        }} source={item.pic}/>
                     </View>
+                    <Text style={{...FONTS.fontXs,marginBottom:6,color:colors.text}}>{item.title}</Text>
+                    <Text
+                        style={{
+                            ...FONTS.h6,
+                            marginBottom:4,
+                            color:colors.title,
+                        }}
+                    >{item.balance}</Text>
                 </Ripple>
-            )}
-            keyExtractor={(item) => item.id}
-        />
+            ))}
+        </View>
     )
 }
 
@@ -132,15 +105,6 @@ const styles = StyleSheet.create({
         borderRadius:SIZES.radius,
         marginBottom:15,
     },
-    cardPattern:{
-        position:'absolute',
-        width:'100%',
-        height:'100%',
-        zIndex:-1,
-        right:0,
-        top:0,
-        resizeMode:'cover',
-    }
 })
 
 export default BalanceWidgets;

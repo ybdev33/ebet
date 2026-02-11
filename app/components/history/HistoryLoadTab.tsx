@@ -22,7 +22,6 @@ import Constants from 'expo-constants';
 import SuccessModal from '@/app/components/modal/SuccessModal';
 import ReceiptModal from '@/app/components/modal/ReceiptModal';
 
-// Web date picker
 import ReactDatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -198,7 +197,6 @@ const HistoryLoad: React.FC = () => {
             <HeaderBar leftIcon="back" title="History" />
 
             <View style={{ padding: 15 }}>
-                {/* Date Picker */}
                 <View style={{ padding: 10, flexDirection: 'row' }}>
                     <View style={{ flex: 1 }}>
                         <View
@@ -283,7 +281,6 @@ const HistoryLoad: React.FC = () => {
                     </View>
                 </View>
 
-                {/* Tabs */}
                 <View style={styles.tabContainer}>
                     <Ripple
                         style={[styles.tab, tab === 'bet' && styles.activeTab]}
@@ -378,7 +375,6 @@ const HistoryLoad: React.FC = () => {
                 </ScrollView>
             </View>
 
-            {/* Modals */}
             <Modal animationType="fade" transparent visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
                 <View style={styles.modalOverlay}>
                     <SuccessModal message={modalMessage} isSuccess={isSuccess} onClose={() => setModalVisible(false)} />
